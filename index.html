@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Adaptive Learning System - Operating Systems</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background-color: #f3f4f6; /* Light Gray Background */
+            color: #1f2937;
+        }
+        .header-gradient {
+            background: linear-gradient(90deg, #8b5cf6, #4f46e5);
+        }
+        .card {
+            background-color: white;
+            border: 1px solid #e5e7eb;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1), 0 4px 6px -2px rgba(79, 70, 229, 0.05);
+        }
+        .progress-bar-bg {
+            background-color: #e5e7eb;
+        }
+        .progress-bar-fill {
+            background: linear-gradient(90deg, #a78bfa, #6366f1);
+            transition: width 0.5s ease-in-out;
+        }
+        .btn-primary {
+            background-color: #6366f1;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .btn-primary:hover {
+            background-color: #4f46e5;
+        }
+        .btn-secondary {
+            background-color: #e5e7eb;
+            color: #374151;
+            transition: background-color 0.3s;
+        }
+        .btn-secondary:hover {
+            background-color: #d1d5db;
+        }
+        .btn-logout {
+            background-color: #ef4444;
+            color: white;
+            transition: background-color 0.3s;
+        }
+        .btn-logout:hover {
+            background-color: #dc2626;
+        }
+        .btn-disabled {
+            background-color: #d1d5db;
+            color: #9ca3af;
+            cursor: not-allowed;
+        }
+        .modal-backdrop {
+            background-color: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(4px);
+        }
+        .modal-content {
+            background-color: white;
+            color: #1f2937;
+        }
+        .locked-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.75rem;
+        }
+        .recommendation-badge {
+            position: absolute;
+            top: -12px;
+            right: -12px;
+            background-color: #ec4899; /* Pink color */
+            color: white;
+            font-weight: 700;
+            padding: 4px 12px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            z-index: 15;
+        }
+    </style>
+</head>
+<body class="min-h-screen p-4 sm:p-8">
+
+    <!-- Main Container -->
+    <div id="app-container" class="max-w-7xl mx-auto">
+        
+        <!-- Header -->
+        <header class="mb-8 p-6 rounded-lg header-gradient text-white shadow-lg">
+            <div class="flex justify-between items-center mb-2">
+                 <h1 class="text-2xl sm:text-3xl font-bold">
+                    <i class="fas fa-cogs mr-2"></i>เส้นทางการเรียนรู้ส่วนตัวของคุณ
+                </h1>
+                <div id="user-controls" class="hidden items-center">
+                    <p id="welcome-message" class="text-md mr-4 hidden sm:block font-medium"></p>
+                    <button id="logout-btn" class="btn-logout py-2 px-4 rounded-lg font-semibold flex items-center text-sm">
+                        <i class="fas fa-sign-out-alt mr-2"></i>
+                        <span>Logout</span>
+                    </button>
+                </div>
+            </div>
+            <p class="text-lg opacity-90">วิชา: ระบบปฏิบัติการ</p>
+        </header>
+
+        <!-- Overall Dashboard -->
+        <section id="overall-dashboard" class="mb-8 hidden">
+            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <h2 class="text-xl font-bold mb-4 text-indigo-600">ภาพรวมการเรียนรู้</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                    <div>
+                        <p class="text-gray-500 text-sm">ความคืบหน้าทั้งหมด</p>
+                        <p id="total-progress-text" class="text-3xl font-bold text-green-500">0%</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">หน่วยที่เรียนจบ</p>
+                        <p id="completed-units-text" class="text-3xl font-bold text-gray-800">0 / 4</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">คะแนนเฉลี่ย</p>
+                        <p id="average-score-text" class="text-3xl font-bold text-blue-500">N/A</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+
+        <!-- Learning Path -->
+        <main id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Unit cards will be injected here by JavaScript -->
+        </main>
+
+        <!-- Footer -->
+        <footer class="text-center py-8 mt-12 text-gray-500 text-sm">
+            <p>จัดทำโดย<br>นายธนพล อ่อนพุก SMTCT<br>6802042857043</p>
+        </footer>
+    </div>
+
+    <!-- Modals -->
+    <!-- Name Input Modal -->
+    <div id="name-modal" class="fixed inset-0 flex items-center justify-center modal-backdrop z-50">
+        <div class="modal-content p-8 rounded-lg shadow-xl w-11/12 max-w-md text-center">
+            <h2 class="text-2xl font-bold mb-4 text-indigo-600">ยินดีต้อนรับ!</h2>
+            <p class="mb-6 text-gray-600">กรุณาใส่ชื่อของคุณเพื่อเริ่มต้น</p>
+            <input type="text" id="name-input" class="w-full p-3 rounded-lg bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ชื่อของคุณ...">
+            <button id="next-to-interest-btn" class="btn-primary w-full py-3 mt-6 rounded-lg font-semibold">ถัดไป</button>
+        </div>
+    </div>
+
+    <!-- Interest Questionnaire Modal -->
+    <div id="interest-modal" class="fixed inset-0 items-center justify-center modal-backdrop z-50 hidden">
+        <div class="modal-content p-8 rounded-lg shadow-xl w-11/12 max-w-lg">
+            <h2 class="text-2xl font-bold mb-2 text-indigo-600">คุณสนใจเรื่องอะไรเป็นพิเศษ?</h2>
+            <p class="mb-6 text-gray-600">เลือก 1 ข้อ เพื่อให้ระบบจัดเส้นทางการเรียนรู้ที่เหมาะกับคุณ</p>
+            <div id="interest-options" class="space-y-3">
+                <label class="flex items-center p-4 rounded-lg border border-gray-300 hover:bg-indigo-50 cursor-pointer">
+                    <input type="radio" name="interest" value="behind-the-scenes" class="mr-4 h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+                    <div>
+                        <p class="font-semibold">การทำงานเบื้องหลัง</p>
+                        <p class="text-sm text-gray-500">อยากรู้ว่า OS จัดการโปรแกรมและ CPU อย่างไร</p>
+                    </div>
+                </label>
+                <label class="flex items-center p-4 rounded-lg border border-gray-300 hover:bg-indigo-50 cursor-pointer">
+                    <input type="radio" name="interest" value="data-management" class="mr-4 h-5 w-5 text-indigo-600 focus:ring-indigo-500">
+                    <div>
+                        <p class="font-semibold">การจัดการข้อมูลและไฟล์</p>
+                        <p class="text-sm text-gray-500">สนใจว่าคอมพิวเตอร์เก็บข้อมูลในหน่วยความจำและไฟล์ได้อย่างไร</p>
+                    </div>
+                </label>
+                <label class="flex items-center p-4 rounded-lg border border-gray-300 hover:bg-indigo-50 cursor-pointer">
+                    <input type="radio" name="interest" value="all" class="mr-4 h-5 w-5 text-indigo-600 focus:ring-indigo-500" checked>
+                    <div>
+                        <p class="font-semibold">ทุกเรื่องเลย!</p>
+                        <p class="text-sm text-gray-500">เรียนตามลำดับมาตรฐานเพื่อความเข้าใจที่ครอบคลุม</p>
+                    </div>
+                </label>
+            </div>
+            <button id="start-learning-btn" class="btn-primary w-full py-3 mt-8 rounded-lg font-semibold">ยืนยันและเริ่มเรียน</button>
+        </div>
+    </div>
+
+    <!-- Test Modal -->
+    <div id="test-modal" class="fixed inset-0 items-center justify-center modal-backdrop z-50 hidden">
+        <div class="modal-content p-6 sm:p-8 rounded-lg shadow-xl w-11/12 max-w-3xl flex flex-col max-h-[90vh]">
+            <h2 id="test-title" class="text-2xl font-bold mb-4 text-indigo-600">แบบทดสอบ</h2>
+            <div id="test-questions-container" class="flex-grow overflow-y-auto pr-4"></div>
+            <div class="mt-6 text-right">
+                <button id="submit-test-btn" class="btn-primary px-8 py-3 rounded-lg font-semibold">ส่งคำตอบ</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Content Modal -->
+    <div id="content-modal" class="fixed inset-0 items-center justify-center modal-backdrop z-50 hidden">
+        <div class="modal-content p-6 sm:p-8 rounded-lg shadow-xl w-11/12 max-w-6xl flex flex-col max-h-[90vh]">
+            <h2 id="content-title" class="text-3xl font-bold mb-6 text-indigo-600"></h2>
+            <div class="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-y-auto">
+                <div id="content-video" class="rounded-lg overflow-hidden"></div>
+                <div id="content-text" class="prose max-w-none text-gray-700 overflow-y-auto pr-4"></div>
+            </div>
+            <div class="mt-6 text-right">
+                <button id="close-content-btn" class="btn-secondary px-8 py-3 rounded-lg font-semibold">ปิด</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Result Modal -->
+    <div id="result-modal" class="fixed inset-0 flex items-center justify-center modal-backdrop z-50 hidden">
+        <div class="modal-content p-8 rounded-lg shadow-xl w-11/12 max-w-md text-center">
+            <h2 id="result-title" class="text-2xl font-bold mb-4"></h2>
+            <p id="result-score" class="text-4xl font-bold my-4"></p>
+            <p id="result-message" class="text-lg text-gray-600 mb-6"></p>
+            <button id="close-result-btn" class="btn-primary w-full py-3 rounded-lg font-semibold">ดำเนินการต่อ</button>
+        </div>
+    </div>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- DATA ---
+            const initialCourseData = {
+                units: [
+                    {
+                        id: 1,
+                        title: "ความรู้เบื้องต้นเกี่ยวกับระบบปฏิบัติการ",
+                        videoUrl: "https://www.youtube.com/embed/dgV_Th6ONiI",
+                        textContent: `
+                            <h4>ระบบปฏิบัติการคืออะไร?</h4>
+                            <p>ระบบปฏิบัติการ (Operating System หรือ OS) คือซอฟต์แวร์ที่ทำหน้าที่เป็นตัวกลางระหว่างฮาร์ดแวร์ของคอมพิวเตอร์และผู้ใช้งาน เป้าหมายหลักของ OS คือการทำให้เราสามารถใช้งานคอมพิวเตอร์ได้สะดวกสบายและมีประสิทธิภาพ</p>
+                            <h4>หน้าที่หลักของ OS</h4>
+                            <ul>
+                                <li><strong>การจัดการทรัพยากร (Resource Management):</strong> OS จะคอยจัดสรรทรัพยากรต่างๆ เช่น CPU, หน่วยความจำ, และอุปกรณ์ I/O ให้กับโปรแกรมต่างๆ ที่กำลังทำงานอยู่ เพื่อไม่ให้เกิดการขัดแย้งกัน</li>
+                                <li><strong>การเป็นตัวกลาง (Interface):</strong> OS มีส่วนติดต่อผู้ใช้ (User Interface) ให้เราสามารถสั่งงานคอมพิวเตอร์ได้ ซึ่งมีทั้งแบบกราฟิก (GUI) ที่เราใช้กันทั่วไป และแบบบรรทัดคำสั่ง (CLI) สำหรับผู้ใช้ขั้นสูง</li>
+                            </ul>
+                            <h4>ส่วนประกอบสำคัญ</h4>
+                            <p><strong>Kernel:</strong> คือหัวใจหรือแกนกลางของ OS ทำหน้าที่ควบคุมการทำงานทั้งหมดและสื่อสารกับฮาร์ดแวร์โดยตรง</p>
+                            <p><strong>Shell:</strong> คือส่วนที่รับคำสั่งจากผู้ใช้ (ไม่ว่าจะเป็นการคลิกเมาส์หรือพิมพ์คำสั่ง) แล้วนำไปแปลผลเพื่อส่งให้ Kernel ทำงานต่อไป</p>
+                        `,
+                        questions: [
+                            { q: "ส่วนประกอบใดของ OS ที่ทำหน้าที่เป็นตัวกลางระหว่างผู้ใช้กับฮาร์ดแวร์?", o: ["Kernel", "Shell", "API", "System Call"], a: "Kernel" },
+                            { q: "ข้อใดคือความแตกต่างหลักระหว่าง GUI และ CLI?", o: ["ความเร็ว", "การใช้กราฟิกเทียบกับการใช้ข้อความ", "ความปลอดภัย", "การจัดการไฟล์"], a: "การใช้กราฟิกเทียบกับการใช้ข้อความ" },
+                            { q: "Time-sharing ใน OS หมายถึงอะไร?", o: ["การแบ่งปันไฟล์ตามเวลา", "การแบ่งเวลาการใช้ CPU ให้กับหลายๆ โปรเซส", "การตั้งเวลาปิดเครื่อง", "การซิงโครไนซ์เวลากับเซิร์ฟเวอร์"], a: "การแบ่งเวลาการใช้ CPU ให้กับหลายๆ โปรเซส" },
+                            { q: "Virtual Memory คืออะไร?", o: ["หน่วยความจำเสมือนที่ใช้พื้นที่ฮาร์ดดิสก์มาช่วย RAM", "หน่วยความจำที่เร็วที่สุด", "หน่วยความจำแบบอ่านอย่างเดียว", "หน่วยความจำแคช"], a: "หน่วยความจำเสมือนที่ใช้พื้นที่ฮาร์ดดิสก์มาช่วย RAM" },
+                            { q: "ระบบปฏิบัติการแบบ Real-time (RTOS) เหมาะกับงานประเภทใด?", o: ["การเล่นเกม", "การควบคุมหุ่นยนต์ในโรงงาน", "การดูหนัง", "การทำงานเอกสาร"], a: "การควบคุมหุ่นยนต์ในโรงงาน" },
+                            { q: "ข้อใดคือหน้าที่ของ Bootloader?", o: ["โหลด Kernel ของ OS เข้าสู่หน่วยความจำ", "จัดการโปรเซส", "ลบไฟล์ขยะ", "ติดตั้งไดรเวอร์"], a: "โหลด Kernel ของ OS เข้าสู่หน่วยความจำ" },
+                            { q: "System Call คืออะไร?", o: ["การเรียกใช้บริการจาก Kernel", "การโทรศัพท์ผ่านระบบ", "คำสั่งของผู้ดูแลระบบ", "การแจ้งเตือนของระบบ"], a: "การเรียกใช้บริการจาก Kernel" },
+                            { q: "ข้อใดไม่ใช่ประเภทของ Kernel?", o: ["Monolithic", "Microkernel", "Hybrid", "Networked"], a: "Networked" },
+                            { q: "Spooling คือเทคนิคที่เกี่ยวข้องกับอุปกรณ์ใด?", o: ["CPU", "RAM", "Printer", "Mouse"], a: "Printer" },
+                            { q: "ข้อใดคือข้อดีของระบบปฏิบัติการ 64-bit เทียบกับ 32-bit?", o: ["รองรับ RAM ได้มากกว่า 4GB", "ทำงานเร็วกว่าเสมอ", "ใช้พื้นที่น้อยกว่า", "ปลอดภัยกว่าเสมอ"], a: "รองรับ RAM ได้มากกว่า 4GB" }
+                        ]
+                    },
+                    {
+                        id: 2,
+                        title: "การจัดการโปรเซส (Process Management)",
+                        videoUrl: "https://www.youtube.com/embed/3m68HnepFDw",
+                        textContent: `
+                            <h4>โปรเซส (Process) คืออะไร?</h4>
+                            <p>โปรเซส คือโปรแกรมที่กำลังทำงานอยู่ในระบบคอมพิวเตอร์ เมื่อเราเปิดโปรแกรมใดๆ ขึ้นมา OS จะสร้างโปรเซสสำหรับโปรแกรมนั้นขึ้นในหน่วยความจำ</p>
+                            <h4>สถานะของโปรเซส (Process States)</h4>
+                            <p>โปรเซสหนึ่งๆ จะมีสถานะการทำงานที่เปลี่ยนแปลงไปตลอดเวลา ได้แก่:</p>
+                            <ul>
+                                <li><strong>New:</strong> โปรเซสกำลังถูกสร้าง</li>
+                                <li><strong>Ready:</strong> โปรเซสพร้อมที่จะทำงาน แต่กำลังรอคิวเพื่อใช้ CPU</li>
+                                <li><strong>Running:</strong> โปรเซสกำลังทำงานอยู่บน CPU</li>
+                                <li><strong>Waiting:</strong> โปรเซสกำลังรอเหตุการณ์บางอย่าง เช่น รอข้อมูลจากฮาร์ดดิสก์</li>
+                                <li><strong>Terminated:</strong> โปรเซสทำงานเสร็จสิ้นแล้ว</li>
+                            </ul>
+                            <h4>การจัดตารางซีพียู (CPU Scheduling)</h4>
+                            <p>เนื่องจาก CPU มีจำกัด แต่มีหลายโปรเซสที่ต้องการใช้งาน OS จึงต้องมี "Scheduler" เพื่อตัดสินใจว่าจะให้โปรเซสใดได้ใช้ CPU ต่อไป โดยมีอัลกอริทึมหลายแบบ เช่น First-Come, First-Served (FCFS), Shortest Job First (SJF), และ Round Robin ซึ่งแต่ละแบบก็มีข้อดีข้อเสียแตกต่างกันไป</p>
+                        `,
+                        questions: [
+                            { q: "อัลกอริทึม SJF (Shortest Job First) อาจทำให้เกิดปัญหาใด?", o: ["Starvation (การอดตาย)", "Deadlock", "Context Switching บ่อยเกินไป", "หน่วยความจำรั่ว"], a: "Starvation (การอดตาย)" },
+                            { q: "Round Robin เป็นอัลกอริทึมจัดตารางแบบใด?", o: ["Preemptive", "Non-preemptive", "ทั้งสองแบบ", "ไม่ใช่ทั้งสองแบบ"], a: "Preemptive" },
+                            { q: "Inter-process Communication (IPC) คืออะไร?", o: ["การสื่อสารระหว่างโปรเซส", "การสื่อสารภายในโปรเซส", "การสื่อสารกับ Kernel", "การสื่อสารกับฮาร์ดแวร์"], a: "การสื่อสารระหว่างโปรเซส" },
+                            { q: "ข้อใดคือเงื่อนไขที่จำเป็นสำหรับการเกิด Deadlock?", o: ["Mutual Exclusion", "Hold and Wait", "No Preemption", "ทั้งหมดที่กล่าวมา"], a: "ทั้งหมดที่กล่าวมา" },
+                            { q: "การสร้างโปรเซสใหม่ใน UNIX ใช้ system call ใด?", o: ["fork()", "create()", "new()", "process()"], a: "fork()" },
+                            { q: "Zombie Process คืออะไร?", o: ["โปรเซสที่ทำงานเสร็จแล้วแต่ยังคงมีข้อมูลในตารางโปรเซส", "โปรเซสที่ติดไวรัส", "โปรเซสที่ทำงานช้า", "โปรเซสที่ถูกหยุดการทำงาน"], a: "โปรเซสที่ทำงานเสร็จแล้วแต่ยังคงมีข้อมูลในตารางโปรเซส" },
+                            { q: "Critical Section คืออะไร?", o: ["ส่วนของโค้ดที่เข้าถึงทรัพยากรที่ใช้ร่วมกัน", "ส่วนที่สำคัญที่สุดของโปรแกรม", "ส่วนที่ทำงานช้าที่สุด", "ส่วนที่ติดต่อกับผู้ใช้"], a: "ส่วนของโค้ดที่เข้าถึงทรัพยากรที่ใช้ร่วมกัน" },
+                            { q: "Priority Scheduling คืออะไร?", o: ["การจัดตารางโดยให้โปรเซสที่มีความสำคัญสูงกว่าได้ทำงานก่อน", "การจัดตารางตามลำดับความสำคัญของผู้ใช้", "การจัดตารางตามขนาดของโปรเซส", "การจัดตารางแบบสุ่ม"], a: "การจัดตารางโดยให้โปรเซสที่มีความสำคัญสูงกว่าได้ทำงานก่อน" },
+                            { q: "ข้อใดคือวิธีการป้องกัน Deadlock?", o: ["Banker's Algorithm", "FCFS", "SJF", "Round Robin"], a: "Banker's Algorithm" },
+                            { q: "Dispatcher ทำหน้าที่อะไร?", o: ["มอบหมายการควบคุม CPU ให้กับโปรเซสที่ถูกเลือกโดย scheduler", "เลือกโปรเซสต่อไป", "สร้างโปรเซสใหม่", "ลบโปรเซส"], a: "มอบหมายการควบคุม CPU ให้กับโปรเซสที่ถูกเลือกโดย scheduler" }
+                        ]
+                    },
+                    {
+                        id: 3,
+                        title: "การจัดการหน่วยความจำ (Memory Management)",
+                        videoUrl: "https://www.youtube.com/embed/uDJdvSnxXA4",
+                        textContent: `
+                            <h4>ทำไมต้องจัดการหน่วยความจำ?</h4>
+                            <p>หน่วยความจำหลัก (RAM) เป็นทรัพยากรที่มีจำกัดและมีความสำคัญอย่างยิ่ง OS ต้องจัดการหน่วยความจำเพื่อให้โปรแกรมหลายๆ ตัวสามารถทำงานพร้อมกันได้โดยไม่กวนกัน และเพื่อให้การใช้หน่วยความจำมีประสิทธิภาพสูงสุด</p>
+                            <h4>Logical vs. Physical Address</h4>
+                            <p>CPU จะสร้างที่อยู่เสมือน (Logical Address) ขึ้นมาสำหรับแต่ละโปรเซส จากนั้น Memory Management Unit (MMU) ซึ่งเป็นฮาร์ดแวร์ จะทำหน้าที่แปลงที่อยู่เสมือนนี้ให้เป็นที่อยู่จริง (Physical Address) บน RAM การทำเช่นนี้ช่วยให้แต่ละโปรเซสมีพื้นที่หน่วยความจำของตัวเองและป้องกันการเข้าถึงข้อมูลของโปรเซสอื่น</p>
+                            <h4>เทคนิคการจัดการ</h4>
+                            <ul>
+                                <li><strong>Paging:</strong> แบ่งหน่วยความจำออกเป็นส่วนๆ ขนาดเท่ากันเรียกว่า "Frame" และแบ่งโปรเซสออกเป็นส่วนๆ ขนาดเท่ากันเรียกว่า "Page" แล้วนำ Page ไปใส่ใน Frame ที่ว่าง</li>
+                                <li><strong>Segmentation:</strong> แบ่งโปรเซสออกเป็นส่วนๆ ตามโครงสร้างของโปรแกรม เช่น ส่วนโค้ด, ส่วนข้อมูล, ส่วนสแต็ก ซึ่งแต่ละส่วนมีขนาดไม่เท่ากัน</li>
+                            </ul>
+                        `,
+                        questions: [
+                            { q: "อัลกอริทึม 'Best-fit' ในการจัดสรรหน่วยความจำทำงานอย่างไร?", o: ["เลือกช่องว่างที่เล็กที่สุดที่พอดี", "เลือกช่องว่างแรกที่ใหญ่พอ", "เลือกช่องว่างที่ใหญ่ที่สุด", "เลือกช่องว่างแบบสุ่ม"], a: "เลือกช่องว่างที่เล็กที่สุดที่พอดี" },
+                            { q: "อัลกอริทึมการแทนที่ Page แบบ 'LRU' ย่อมาจากอะไร?", o: ["Least Recently Used", "Last Recently Used", "Least Randomly Used", "Last Randomly Used"], a: "Least Recently Used" },
+                            { q: "TLB (Translation Lookaside Buffer) คืออะไร?", o: ["แคชพิเศษสำหรับเก็บ Page Table ที่ใช้งานบ่อยๆ", "บัฟเฟอร์สำหรับ I/O", "หน่วยความจำสำหรับ Kernel", "ส่วนหนึ่งของฮาร์ดดิสก์"], a: "แคชพิเศษสำหรับเก็บ Page Table ที่ใช้งานบ่อยๆ" },
+                            { q: "Internal Fragmentation เกิดขึ้นกับเทคนิคใด?", o: ["Paging", "Segmentation", "Dynamic Partitioning", "Swapping"], a: "Paging" },
+                            { q: "External Fragmentation เกิดขึ้นกับเทคนิคใด?", o: ["Segmentation", "Paging", "Virtual Memory", "Page Table"], a: "Segmentation" },
+                            { q: "Demand Paging คืออะไร?", o: ["การนำ Page เข้ามาในหน่วยความจำเมื่อมีการเรียกใช้งานเท่านั้น", "การนำทุก Page เข้ามาพร้อมกัน", "การเรียงลำดับความต้องการ Page", "การลบ Page ที่ไม่ต้องการ"], a: "การนำ Page เข้ามาในหน่วยความจำเมื่อมีการเรียกใช้งานเท่านั้น" },
+                            { q: "Working Set Model เกี่ยวข้องกับเรื่องใด?", o: ["การป้องกัน Thrashing", "การจัดสรร CPU", "การจัดการไฟล์", "ความปลอดภัย"], a: "การป้องกัน Thrashing" },
+                            { q: "Compaction คือเทคนิคสำหรับแก้ปัญหาอะไร?", o: ["External Fragmentation", "Internal Fragmentation", "Page Fault", "Deadlock"], a: "External Fragmentation" },
+                            { q: "Dirty Bit (Modify Bit) ใน Page Table มีไว้เพื่ออะไร?", o: ["บอกว่า Page นั้นมีการแก้ไขข้อมูลหรือไม่", "บอกว่า Page นั้นสกปรก", "บอกว่า Page นั้นมีข้อผิดพลาด", "บอกว่า Page นั้นถูกใช้งานล่าสุดเมื่อไหร่"], a: "บอกว่า Page นั้นมีการแก้ไขข้อมูลหรือไม่" },
+                            { q: "ข้อใดคือข้อเสียของ Segmentation?", o: ["เกิด External Fragmentation", "เกิด Internal Fragmentation", "จัดการยาก", "ทำงานช้า"], a: "เกิด External Fragmentation" }
+                        ]
+                    },
+                    {
+                        id: 4,
+                        title: "การจัดการไฟล์ (File Management)",
+                        videoUrl: "https://www.youtube.com/embed/q7vKZGebvyo",
+                        textContent: `
+                            <h4>ไฟล์และระบบไฟล์</h4>
+                            <p>ไฟล์ (File) คือหน่วยของการเก็บข้อมูลที่เป็นนามธรรมที่ OS สร้างขึ้นเพื่อความสะดวกในการใช้งาน ส่วนระบบไฟล์ (File System) คือโครงสร้างที่ OS ใช้ในการจัดระเบียบ จัดเก็บ และเข้าถึงไฟล์เหล่านั้นบนอุปกรณ์จัดเก็บข้อมูล เช่น ฮาร์ดดิสก์ หรือ SSD</p>
+                            <h4>โครงสร้างไดเรกทอรี (Directory Structure)</h4>
+                            <p>เพื่อความเป็นระเบียบ ไฟล์ต่างๆ จะถูกจัดเก็บไว้ในไดเรกทอรี (หรือที่เรียกกันว่าโฟลเดอร์) ซึ่งสามารถมีโครงสร้างได้หลายแบบ เช่น:</p>
+                            <ul>
+                                <li><strong>Tree Structure:</strong> โครงสร้างแบบต้นไม้ที่ใช้กันทั่วไป มี Root Directory อยู่บนสุด และมีไดเรกทอรีย่อยซ้อนกันลงไป</li>
+                                <li><strong>Acyclic-Graph Structure:</strong> โครงสร้างที่ซับซ้อนขึ้น อนุญาตให้มีการแชร์ไฟล์หรือไดเรกทอรีร่วมกันได้</li>
+                            </ul>
+                            <h4>การจัดสรรพื้นที่ (File Allocation)</h4>
+                            <p>OS มีวิธีจัดสรรพื้นที่บนดิสก์ให้กับไฟล์หลายวิธี เช่น:</p>
+                            <p><strong>Contiguous Allocation:</strong> จองพื้นที่ต่อเนื่องกันสำหรับทั้งไฟล์ ทำให้เข้าถึงเร็วแต่เกิดปัญหาพื้นที่ว่างกระจัดกระจาย (External Fragmentation)</p>
+                            <p><strong>Linked Allocation:</strong> เก็บไฟล์แบบไม่ต่อเนื่อง โดยแต่ละบล็อกจะมีการชี้ไปยังบล็อกถัดไป แก้ปัญหา Fragmentation แต่เข้าถึงข้อมูลแบบสุ่มได้ช้า</p>
+                            <p><strong>Indexed Allocation:</strong> ใช้บล็อกพิเศษเรียกว่า "Index Block" เพื่อเก็บตำแหน่งของบล็อกข้อมูลทั้งหมดของไฟล์ เป็นวิธีที่ยืดหยุ่นและมีประสิทธิภาพ</p>
+                        `,
+                        questions: [
+                            { q: "การจัดสรรพื้นที่ไฟล์แบบ 'Linked Allocation' แก้ปัญหาของ Contiguous Allocation ได้อย่างไร?", o: ["ไม่เกิด External Fragmentation", "เข้าถึงข้อมูลได้เร็วกว่า", "ใช้พื้นที่น้อยกว่า", "ปลอดภัยกว่า"], a: "ไม่เกิด External Fragmentation" },
+                            { q: "ข้อเสียหลักของ 'Linked Allocation' คืออะไร?", o: ["ไม่เหมาะกับการเข้าถึงข้อมูลแบบ Direct Access", "เกิด Internal Fragmentation", "จำกัดขนาดไฟล์", "จัดการยาก"], a: "ไม่เหมาะกับการเข้าถึงข้อมูลแบบ Direct Access" },
+                            { q: "FAT (File Allocation Table) คือตัวอย่างของการจัดสรรพื้นที่แบบใด?", o: ["Linked Allocation", "Contiguous Allocation", "Indexed Allocation", "Hashed Allocation"], a: "Linked Allocation" },
+                            { q: "Indexed Allocation ทำงานอย่างไร?", o: ["ใช้ Index Block เพื่อชี้ไปยัง Data Blocks ทั้งหมดของไฟล์", "ใช้การเชื่อมโยงแต่ละ Block", "จองพื้นที่ต่อเนื่องกัน", "ใช้ตาราง FAT"], a: "ใช้ Index Block เพื่อชี้ไปยัง Data Blocks ทั้งหมดของไฟล์" },
+                            { q: "Free-space list ใช้ทำอะไร?", o: ["ติดตามว่า Block ใดในดิสก์ที่ยังว่างอยู่", "ลบไฟล์ที่ไม่ใช้งาน", "แสดงรายการไฟล์ทั้งหมด", "บีบอัดพื้นที่ว่าง"], a: "ติดตามว่า Block ใดในดิสก์ที่ยังว่างอยู่" },
+                            { q: "Hard Link แตกต่างจาก Symbolic Link (Soft Link) อย่างไร?", o: ["Hard Link คือการมีชื่อไฟล์หลายชื่อชี้ไปยัง inode เดียวกัน", "Symbolic Link เร็วกว่า", "Hard Link สามารถข้าม File System ได้", "Symbolic Link ปลอดภัยกว่า"], a: "Hard Link คือการมีชื่อไฟล์หลายชื่อชี้ไปยัง inode เดียวกัน" },
+                            { q: "RAID (Redundant Array of Independent Disks) คือเทคโนโลยีเกี่ยวกับอะไร?", o: ["การรวมฮาร์ดดิสก์หลายลูกเพื่อเพิ่มประสิทธิภาพหรือความน่าเชื่อถือ", "การจัดการไฟล์ขนาดใหญ่", "การบีบอัดข้อมูล", "การเข้ารหัสไฟล์"], a: "การรวมฮาร์ดดิสก์หลายลูกเพื่อเพิ่มประสิทธิภาพหรือความน่าเชื่อถือ" },
+                            { q: "ข้อใดคือหน้าที่ของ 'Directory Structure'?", o: ["จัดระเบียบไฟล์ให้ค้นหาง่าย", "เพิ่มความเร็วในการเข้าถึงไฟล์", "ลดขนาดไฟล์", "ป้องกันการเข้าถึงไฟล์"], a: "จัดระเบียบไฟล์ให้ค้นหาง่าย" },
+                            { q: "Acyclic-Graph Directory Structure อนุญาตให้เกิดสิ่งใดได้?", o: ["การแชร์ไฟล์หรือไดเรกทอรีร่วมกัน", "การมีไดเรกทอรีซ้ำซ้อน", "การสร้าง Loop", "การลบไฟล์ระบบ"], a: "การแชร์ไฟล์หรือไดเรกทอรีร่วมกัน" },
+                            { q: "การฟอร์แมตดิสก์ (Formatting) คืออะไร?", o: ["การสร้าง File System บนดิสก์เพื่อให้พร้อมใช้งาน", "การลบข้อมูลทั้งหมดอย่างถาวร", "การแบ่งพาร์ติชัน", "การตรวจสอบข้อผิดพลาดของดิสก์"], a: "การสร้าง File System บนดิสก์เพื่อให้พร้อมใช้งาน" }
+                        ]
+                    }
+                ].map(unit => ({ ...unit, status: 'locked', progress: 0, preTestScore: null, postTestScore: null, completionScore: null }))
+            };
+
+            let user = {
+                name: '',
+                progress: JSON.parse(JSON.stringify(initialCourseData.units))
+            };
+            
+            let currentTest = {
+                unitId: null,
+                type: ''
+            };
+
+            // --- DOM Elements ---
+            const dashboard = document.getElementById('dashboard');
+            const welcomeMessage = document.getElementById('welcome-message');
+            const userControls = document.getElementById('user-controls');
+            const logoutBtn = document.getElementById('logout-btn');
+
+            const overallDashboard = document.getElementById('overall-dashboard');
+            const totalProgressText = document.getElementById('total-progress-text');
+            const completedUnitsText = document.getElementById('completed-units-text');
+            const averageScoreText = document.getElementById('average-score-text');
+            
+            const nameModal = document.getElementById('name-modal');
+            const nameInput = document.getElementById('name-input');
+            const nextToInterestBtn = document.getElementById('next-to-interest-btn');
+
+            const interestModal = document.getElementById('interest-modal');
+            const startLearningBtn = document.getElementById('start-learning-btn');
+            
+            const testModal = document.getElementById('test-modal');
+            const testTitle = document.getElementById('test-title');
+            const testQuestionsContainer = document.getElementById('test-questions-container');
+            const submitTestBtn = document.getElementById('submit-test-btn');
+
+            const contentModal = document.getElementById('content-modal');
+            const contentTitle = document.getElementById('content-title');
+            const contentVideo = document.getElementById('content-video');
+            const contentText = document.getElementById('content-text');
+            const closeContentBtn = document.getElementById('close-content-btn');
+
+            const resultModal = document.getElementById('result-modal');
+            const resultTitle = document.getElementById('result-title');
+            const resultScore = document.getElementById('result-score');
+            const resultMessage = document.getElementById('result-message');
+            const closeResultBtn = document.getElementById('close-result-btn');
+
+
+            // --- FUNCTIONS ---
+
+            function saveProgress() {
+                localStorage.setItem('osLearningProgress', JSON.stringify(user));
+            }
+
+            function loadProgress() {
+                const savedData = localStorage.getItem('osLearningProgress');
+                if (savedData) {
+                    user = JSON.parse(savedData);
+                    user.progress.forEach(unit => {
+                        if (unit.completionScore === undefined) unit.completionScore = null;
+                    });
+                    
+                    nameModal.classList.add('hidden');
+                    interestModal.classList.add('hidden');
+                    welcomeMessage.textContent = `ผู้เรียน: ${user.name}`;
+                    userControls.classList.remove('hidden');
+                    userControls.classList.add('flex');
+                    overallDashboard.classList.remove('hidden');
+                    renderAll();
+                } else {
+                    nameModal.classList.remove('hidden');
+                    nameModal.classList.add('flex');
+                    userControls.classList.add('hidden');
+                    overallDashboard.classList.add('hidden');
+                }
+            }
+            
+            function renderAll() {
+                renderDashboard();
+                renderOverallDashboard();
+            }
+
+            function renderOverallDashboard() {
+                const completedUnits = user.progress.filter(u => u.status === 'completed');
+                const totalUnits = user.progress.length;
+                
+                const overallProgress = (completedUnits.length / totalUnits) * 100;
+                totalProgressText.textContent = `${overallProgress.toFixed(0)}%`;
+                completedUnitsText.textContent = `${completedUnits.length} / ${totalUnits}`;
+
+                const scores = completedUnits.map(u => u.completionScore).filter(score => score !== null);
+                if (scores.length > 0) {
+                    const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
+                    averageScoreText.textContent = `${avgScore.toFixed(0)}%`;
+                } else {
+                    averageScoreText.textContent = 'N/A';
+                }
+            }
+
+            function reorderUnits(interest) {
+                let newOrderIds = [];
+                const allUnits = JSON.parse(JSON.stringify(initialCourseData.units));
+
+                switch (interest) {
+                    case 'behind-the-scenes':
+                        newOrderIds = [2, 1, 3, 4];
+                        break;
+                    case 'data-management':
+                        newOrderIds = [3, 4, 1, 2];
+                        break;
+                    case 'all':
+                    default:
+                        newOrderIds = [1, 2, 3, 4];
+                        break;
+                }
+
+                user.progress = newOrderIds.map(id => allUnits.find(u => u.id === id));
+
+                // Reset status based on new order
+                user.progress.forEach((unit, index) => {
+                    unit.status = (index === 0) ? 'unlocked' : 'locked';
+                });
+            }
+
+            function renderDashboard() {
+                dashboard.innerHTML = '';
+                const recommendedUnit = user.progress.find(u => u.status === 'unlocked' && u.progress < 100);
+                const recommendedUnitId = recommendedUnit ? recommendedUnit.id : null;
+
+                user.progress.forEach(unit => {
+                    const isLocked = unit.status === 'locked';
+                    const card = document.createElement('div');
+                    card.className = 'card rounded-lg p-6 relative flex flex-col shadow-md';
+                    
+                    let statusText, statusColor;
+                    switch(unit.status) {
+                        case 'locked': statusText = 'ล็อกอยู่'; statusColor = 'text-gray-500'; break;
+                        case 'unlocked': statusText = 'พร้อมเรียน'; statusColor = 'text-yellow-500'; break;
+                        case 'completed': statusText = 'เรียนจบแล้ว'; statusColor = 'text-green-500'; break;
+                    }
+
+                    const recommendationBadge = unit.id === recommendedUnitId ? `
+                        <div class="recommendation-badge">
+                            <i class="fas fa-star"></i>
+                            <span>แนะนำ</span>
+                        </div>` : '';
+
+                    card.innerHTML = `
+                        ${recommendationBadge}
+                        ${isLocked ? `<div class="locked-overlay"><i class="fas fa-lock text-5xl text-gray-400"></i></div>` : ''}
+                        <div class="flex-grow">
+                            <div class="flex justify-between items-start">
+                                <h3 class="text-xl font-bold mb-2 text-indigo-700">${unit.title}</h3>
+                                <span class="font-semibold ${statusColor}">${statusText}</span>
+                            </div>
+                            <div class="mb-4 mt-4">
+                                <div class="flex justify-between text-sm text-gray-500 mb-1">
+                                    <span>ความคืบหน้า</span>
+                                    <span>${unit.progress}%</span>
+                                </div>
+                                <div class="progress-bar-bg w-full rounded-full h-2.5"><div class="progress-bar-fill h-2.5 rounded-full" style="width: ${unit.progress}%"></div></div>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto">
+                            <button data-unit-id="${unit.id}" data-test-type="pre" class="pre-test-btn btn-secondary py-2 rounded-md flex items-center justify-center ${unit.status !== 'unlocked' || unit.progress > 0 ? 'btn-disabled' : ''}" ${unit.status !== 'unlocked' || unit.progress > 0 ? 'disabled' : ''}><i class="fas fa-diagnoses mr-2"></i><span>ทดสอบก่อนเรียน</span></button>
+                            <button data-unit-id="${unit.id}" class="content-btn btn-secondary py-2 rounded-md flex items-center justify-center ${unit.status === 'locked' || unit.status === 'completed' ? 'btn-disabled' : ''}" ${unit.status === 'locked' || unit.status === 'completed' ? 'disabled' : ''}><i class="fas fa-book-open mr-2"></i><span>เนื้อหาบทเรียน</span></button>
+                            <button data-unit-id="${unit.id}" data-test-type="post" class="post-test-btn btn-primary py-2 rounded-md sm:col-span-2 flex items-center justify-center ${unit.status !== 'unlocked' || unit.progress < 50 || unit.progress === 100 ? 'btn-disabled' : ''}" ${unit.status !== 'unlocked' || unit.progress < 50 || unit.progress === 100 ? 'disabled' : ''}><i class="fas fa-graduation-cap mr-2"></i><span>ทดสอบหลังเรียน</span></button>
+                        </div>
+                    `;
+                    dashboard.appendChild(card);
+                });
+                addEventListenersToButtons();
+            }
+
+            function addEventListenersToButtons() {
+                document.querySelectorAll('.pre-test-btn:not([disabled])').forEach(btn => btn.addEventListener('click', startTest));
+                document.querySelectorAll('.post-test-btn:not([disabled])').forEach(btn => btn.addEventListener('click', startTest));
+                document.querySelectorAll('.content-btn:not([disabled])').forEach(btn => btn.addEventListener('click', showContent));
+            }
+
+            function startTest(event) {
+                const button = event.currentTarget;
+                const unitId = parseInt(button.dataset.unitId);
+                const testType = button.dataset.testType;
+                const unit = user.progress.find(u => u.id === unitId);
+                
+                currentTest.unitId = unitId;
+                currentTest.type = testType;
+
+                const questions = unit.questions;
+                testTitle.textContent = `แบบทดสอบ${testType === 'pre' ? 'ก่อนเรียน' : 'หลังเรียน'}: ${unit.title}`;
+                
+                testQuestionsContainer.innerHTML = '';
+                questions.forEach((q, index) => {
+                    testQuestionsContainer.innerHTML += `
+                        <div class="mb-6">
+                            <p class="font-semibold mb-3">${index + 1}. ${q.q}</p>
+                            <div class="space-y-2">
+                                ${q.o.map(option => `
+                                    <div><label class="flex items-center p-3 rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500"><span>${option}</span></label></div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                });
+
+                testModal.classList.remove('hidden');
+                testModal.classList.add('flex');
+            }
+
+            function handleSubmitTest() {
+                const unit = user.progress.find(u => u.id === currentTest.unitId);
+                const questions = unit.questions;
+                let score = 0;
+                questions.forEach((q, index) => {
+                    const selected = document.querySelector(`input[name="q${index}"]:checked`);
+                    if (selected && selected.value === q.a) score++;
+                });
+                const percentage = (score / questions.length) * 100;
+                testModal.classList.add('hidden');
+                showResult(percentage);
+            }
+
+            function showResult(percentage) {
+                const unit = user.progress.find(u => u.id === currentTest.unitId);
+                resultScore.textContent = `${percentage.toFixed(0)}%`;
+                resultScore.className = `text-4xl font-bold my-4 ${percentage >= 60 ? 'text-green-500' : 'text-red-500'}`;
+                
+                if (currentTest.type === 'pre') {
+                    unit.preTestScore = percentage;
+                    if (percentage >= 80) {
+                        resultTitle.textContent = "ยอดเยี่ยมมาก!";
+                        resultMessage.innerHTML = `ระบบตรวจพบว่าคุณมีความเข้าใจดีอยู่แล้ว<br>จึงปรับเส้นทางให้คุณข้ามไปบทต่อไปได้เลย!`;
+                        unit.progress = 100;
+                        unit.status = 'completed';
+                        unit.completionScore = percentage;
+                        unlockNextUnit(unit.id);
+                    } else {
+                        resultTitle.textContent = "เริ่มต้นได้ดี!";
+                        resultMessage.innerHTML = `ตอนนี้คุณพร้อมที่จะเรียนรู้เนื้อหาแล้ว<br>ระบบได้เตรียมวิดีโอไว้ให้คุณแล้ว`;
+                        unit.progress = 50;
+                    }
+                } else { // Post-test
+                    unit.postTestScore = percentage;
+                    if (percentage >= 60) {
+                        resultTitle.textContent = "ยินดีด้วย!";
+                        resultMessage.innerHTML = `คุณผ่านบทเรียนนี้แล้ว!<br>เส้นทางบทต่อไปถูกปลดล็อกให้คุณแล้ว`;
+                        unit.progress = 100;
+                        unit.status = 'completed';
+                        unit.completionScore = percentage;
+                        unlockNextUnit(unit.id);
+                    } else {
+                        resultTitle.textContent = "พยายามอีกนิด!";
+                        resultMessage.innerHTML = `คะแนนของคุณยังไม่ผ่านเกณฑ์<br>ระบบแนะนำให้คุณทบทวนเนื้อหาอีกครั้ง`;
+                    }
+                }
+                resultModal.classList.remove('hidden');
+                resultModal.classList.add('flex');
+            }
+
+            function unlockNextUnit(completedUnitId) {
+                const completedUnitIndex = user.progress.findIndex(u => u.id === completedUnitId);
+                if (completedUnitIndex !== -1 && completedUnitIndex < user.progress.length - 1) {
+                    const nextUnit = user.progress[completedUnitIndex + 1];
+                    if (nextUnit.status === 'locked') {
+                        nextUnit.status = 'unlocked';
+                    }
+                }
+            }
+
+            function showContent(event) {
+                const button = event.currentTarget;
+                const unitId = parseInt(button.dataset.unitId);
+                const unit = user.progress.find(u => u.id === unitId);
+                contentTitle.textContent = unit.title;
+                contentVideo.innerHTML = `<iframe width="640" height="360" class="mx-auto max-w-full rounded-lg" src="${unit.videoUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
+                contentText.innerHTML = unit.textContent;
+                contentModal.classList.remove('hidden');
+                contentModal.classList.add('flex');
+            }
+            
+            function handleLogout() {
+                localStorage.removeItem('osLearningProgress');
+                location.reload();
+            }
+
+            // --- EVENT LISTENERS ---
+            nextToInterestBtn.addEventListener('click', () => {
+                const name = nameInput.value.trim();
+                if (name) {
+                    user.name = name;
+                    nameModal.classList.add('hidden');
+                    interestModal.classList.remove('hidden');
+                    interestModal.classList.add('flex');
+                } else {
+                    alert('กรุณาใส่ชื่อของคุณ');
+                }
+            });
+
+            startLearningBtn.addEventListener('click', () => {
+                const selectedInterest = document.querySelector('input[name="interest"]:checked').value;
+                reorderUnits(selectedInterest);
+
+                welcomeMessage.textContent = `ผู้เรียน: ${user.name}`;
+                interestModal.classList.add('hidden');
+                userControls.classList.remove('hidden');
+                userControls.classList.add('flex');
+                overallDashboard.classList.remove('hidden');
+                saveProgress();
+                renderAll();
+            });
+
+            submitTestBtn.addEventListener('click', handleSubmitTest);
+            closeContentBtn.addEventListener('click', () => {
+                contentModal.classList.add('hidden');
+                contentVideo.innerHTML = '';
+                contentText.innerHTML = '';
+            });
+            closeResultBtn.addEventListener('click', () => {
+                resultModal.classList.add('hidden');
+                saveProgress();
+                renderAll();
+            });
+            logoutBtn.addEventListener('click', handleLogout);
+
+            // --- INITIALIZATION ---
+            loadProgress();
+        });
+    </script>
+
+</body>
+</html>
