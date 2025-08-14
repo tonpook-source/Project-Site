@@ -511,24 +511,28 @@
                     const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
                     averageScoreText.textContent = `${avgScore.toFixed(0)}%`;
 
-                    let levelIcon = '';
-                    let levelText = '';
-                    let levelColor = '';
+                    if (isCourseComplete()) {
+                        let levelIcon = '';
+                        let levelText = '';
+                        let levelColor = '';
 
-                    if (avgScore >= 90) {
-                        levelIcon = 'fa-crown';
-                        levelText = 'ยอดเยี่ยม';
-                        levelColor = 'text-yellow-500';
-                    } else if (avgScore >= 70) {
-                        levelIcon = 'fa-star';
-                        levelText = 'ดี';
-                        levelColor = 'text-blue-500';
+                        if (avgScore >= 90) {
+                            levelIcon = 'fa-crown';
+                            levelText = 'ยอดเยี่ยม';
+                            levelColor = 'text-yellow-500';
+                        } else if (avgScore >= 70) {
+                            levelIcon = 'fa-star';
+                            levelText = 'ดี';
+                            levelColor = 'text-blue-500';
+                        } else {
+                            levelIcon = 'fa-seedling';
+                            levelText = 'พื้นฐาน';
+                            levelColor = 'text-green-500';
+                        }
+                        learningLevelDisplay.innerHTML = `<i class="fas ${levelIcon} ${levelColor} text-3xl mr-2"></i><p class="text-3xl font-bold ${levelColor}">${levelText}</p>`;
                     } else {
-                        levelIcon = 'fa-seedling';
-                        levelText = 'พื้นฐาน';
-                        levelColor = 'text-green-500';
+                         learningLevelDisplay.innerHTML = `<p class="text-3xl font-bold text-gray-400">N/A</p>`;
                     }
-                    learningLevelDisplay.innerHTML = `<i class="fas ${levelIcon} ${levelColor} text-3xl mr-2"></i><p class="text-3xl font-bold ${levelColor}">${levelText}</p>`;
 
                 } else {
                     averageScoreText.textContent = 'N/A';
@@ -704,14 +708,21 @@
 
             function showResult(percentage) {
                 resultScore.textContent = `${percentage.toFixed(0)}%`;
-                resultScore.className = `text-4xl font-bold my-4 ${percentage >= 60 ? 'text-green-500' : 'text-red-500'}`;
                 
                 if (currentTest.type === 'final') {
-                    user.finalExamScore = percentage;
-                    resultTitle.textContent = "ผลการทดสอบประมวลความรู้";
-                    resultMessage.innerHTML = `คุณทำแบบทดสอบสุดท้ายสำเร็จแล้ว!`;
-                    handleCourseCompletion();
+                    if (percentage >= 80) {
+                        user.finalExamScore = percentage;
+                        resultTitle.textContent = "ยินดีด้วย คุณผ่านแล้ว!";
+                        resultMessage.innerHTML = `คุณทำแบบทดสอบประมวลความรู้ผ่านเกณฑ์แล้ว!`;
+                        resultScore.className = `text-4xl font-bold my-4 text-green-500`;
+                        handleCourseCompletion();
+                    } else {
+                        resultTitle.textContent = "พยายามอีกครั้ง";
+                        resultMessage.innerHTML = `คะแนนของคุณยังไม่ถึง 80%<br>กรุณาทดสอบอีกครั้งเพื่อประมวลความรู้ทั้งหมด`;
+                        resultScore.className = `text-4xl font-bold my-4 text-red-500`;
+                    }
                 } else {
+                    resultScore.className = `text-4xl font-bold my-4 ${percentage >= 60 ? 'text-green-500' : 'text-red-500'}`;
                     const unit = user.progress.find(u => u.id === currentTest.unitId);
                     if (currentTest.type === 'pre') {
                         unit.preTestScore = percentage;
