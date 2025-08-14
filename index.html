@@ -129,7 +129,7 @@
         <section id="overall-dashboard" class="mb-8 hidden">
             <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
                 <h2 class="text-xl font-bold mb-4 text-indigo-600">ภาพรวมการเรียนรู้</h2>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
                     <div>
                         <p class="text-gray-500 text-sm">ความคืบหน้าทั้งหมด</p>
                         <p id="total-progress-text" class="text-3xl font-bold text-green-500">0%</p>
@@ -141,6 +141,12 @@
                     <div>
                         <p class="text-gray-500 text-sm">คะแนนเฉลี่ย</p>
                         <p id="average-score-text" class="text-3xl font-bold text-blue-500">N/A</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">ระดับการเรียนรู้</p>
+                        <div id="learning-level-display" class="flex items-center justify-center mt-1">
+                             <p class="text-3xl font-bold text-gray-400">N/A</p>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -406,6 +412,7 @@
             const totalProgressText = document.getElementById('total-progress-text');
             const completedUnitsText = document.getElementById('completed-units-text');
             const averageScoreText = document.getElementById('average-score-text');
+            const learningLevelDisplay = document.getElementById('learning-level-display');
 
             const postCourseSection = document.getElementById('post-course-section');
             const recommendationMessage = document.getElementById('recommendation-message');
@@ -503,8 +510,29 @@
                 if (scores.length > 0) {
                     const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
                     averageScoreText.textContent = `${avgScore.toFixed(0)}%`;
+
+                    let levelIcon = '';
+                    let levelText = '';
+                    let levelColor = '';
+
+                    if (avgScore >= 90) {
+                        levelIcon = 'fa-crown';
+                        levelText = 'ยอดเยี่ยม';
+                        levelColor = 'text-yellow-500';
+                    } else if (avgScore >= 70) {
+                        levelIcon = 'fa-star';
+                        levelText = 'ดี';
+                        levelColor = 'text-blue-500';
+                    } else {
+                        levelIcon = 'fa-seedling';
+                        levelText = 'พื้นฐาน';
+                        levelColor = 'text-green-500';
+                    }
+                    learningLevelDisplay.innerHTML = `<i class="fas ${levelIcon} ${levelColor} text-3xl mr-2"></i><p class="text-3xl font-bold ${levelColor}">${levelText}</p>`;
+
                 } else {
                     averageScoreText.textContent = 'N/A';
+                    learningLevelDisplay.innerHTML = `<p class="text-3xl font-bold text-gray-400">N/A</p>`;
                 }
             }
 
