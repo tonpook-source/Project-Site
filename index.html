@@ -146,6 +146,23 @@
             </div>
         </section>
 
+        <!-- Post-Course Section -->
+        <section id="post-course-section" class="mb-8 hidden">
+             <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+                <div id="recommendation-message" class="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md hidden">
+                    <p class="font-bold">เรียนครบทุกหน่วยแล้ว!</p>
+                    <p>เยี่ยมมาก! ตอนนี้ระบบแนะนำให้คุณทบทวนบทเรียนที่ได้คะแนนน้อยที่สุด เพื่อความเข้าใจที่สมบูรณ์ยิ่งขึ้น</p>
+                </div>
+                <div id="final-exam-container" class="text-center">
+                    <h2 class="text-xl font-bold mb-4 text-indigo-600">ขั้นตอนสุดท้าย: ประมวลความรู้</h2>
+                    <p id="final-exam-score-display" class="text-lg mb-4 hidden">คะแนนของคุณ: <span class="font-bold text-2xl"></span></p>
+                    <button id="start-final-exam-btn" class="btn-primary py-3 px-8 rounded-lg font-semibold text-lg">
+                        <i class="fas fa-trophy mr-2"></i>เริ่มทำแบบทดสอบประมวลความรู้ (20 ข้อ)
+                    </button>
+                </div>
+            </div>
+        </section>
+
 
         <!-- Learning Path -->
         <main id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -368,13 +385,16 @@
 
             let user = {
                 name: '',
-                progress: JSON.parse(JSON.stringify(initialCourseData.units))
+                progress: JSON.parse(JSON.stringify(initialCourseData.units)),
+                finalExamScore: null
             };
             
             let currentTest = {
                 unitId: null,
                 type: ''
             };
+            
+            let finalExamQuestions = [];
 
             // --- DOM Elements ---
             const dashboard = document.getElementById('dashboard');
@@ -386,6 +406,11 @@
             const totalProgressText = document.getElementById('total-progress-text');
             const completedUnitsText = document.getElementById('completed-units-text');
             const averageScoreText = document.getElementById('average-score-text');
+
+            const postCourseSection = document.getElementById('post-course-section');
+            const recommendationMessage = document.getElementById('recommendation-message');
+            const finalExamScoreDisplay = document.getElementById('final-exam-score-display');
+            const startFinalExamBtn = document.getElementById('start-final-exam-btn');
             
             const nameModal = document.getElementById('name-modal');
             const nameInput = document.getElementById('name-input');
@@ -422,9 +447,7 @@
                 const savedData = localStorage.getItem('osLearningProgress');
                 if (savedData) {
                     user = JSON.parse(savedData);
-                    user.progress.forEach(unit => {
-                        if (unit.completionScore === undefined) unit.completionScore = null;
-                    });
+                    if (user.finalExamScore === undefined) user.finalExamScore = null;
                     
                     nameModal.classList.add('hidden');
                     interestModal.classList.add('hidden');
@@ -442,8 +465,30 @@
             }
             
             function renderAll() {
-                renderDashboard();
+                const isCourseDone = isCourseComplete();
+                if (isCourseDone) {
+                    handleCourseCompletion();
+                }
+                renderDashboard(isCourseDone);
                 renderOverallDashboard();
+            }
+
+            function isCourseComplete() {
+                return user.progress.every(u => u.status === 'completed');
+            }
+
+            function handleCourseCompletion() {
+                postCourseSection.classList.remove('hidden');
+                recommendationMessage.classList.remove('hidden');
+                
+                // Sort units by score for recommendation
+                user.progress.sort((a, b) => a.completionScore - b.completionScore);
+
+                if (user.finalExamScore !== null) {
+                    startFinalExamBtn.classList.add('hidden');
+                    finalExamScoreDisplay.classList.remove('hidden');
+                    finalExamScoreDisplay.querySelector('span').textContent = `${user.finalExamScore.toFixed(0)}%`;
+                }
             }
 
             function renderOverallDashboard() {
@@ -468,30 +513,22 @@
                 const allUnits = JSON.parse(JSON.stringify(initialCourseData.units));
 
                 switch (interest) {
-                    case 'behind-the-scenes':
-                        newOrderIds = [2, 1, 3, 4];
-                        break;
-                    case 'data-management':
-                        newOrderIds = [3, 4, 1, 2];
-                        break;
-                    case 'all':
-                    default:
-                        newOrderIds = [1, 2, 3, 4];
-                        break;
+                    case 'behind-the-scenes': newOrderIds = [2, 1, 3, 4]; break;
+                    case 'data-management': newOrderIds = [3, 4, 1, 2]; break;
+                    default: newOrderIds = [1, 2, 3, 4]; break;
                 }
 
                 user.progress = newOrderIds.map(id => allUnits.find(u => u.id === id));
-
-                // Reset status based on new order
                 user.progress.forEach((unit, index) => {
                     unit.status = (index === 0) ? 'unlocked' : 'locked';
                 });
             }
 
-            function renderDashboard() {
+            function renderDashboard(isCourseDone) {
                 dashboard.innerHTML = '';
+                const postFinalExamMode = isCourseDone && user.finalExamScore !== null;
                 const recommendedUnit = user.progress.find(u => u.status === 'unlocked' && u.progress < 100);
-                const recommendedUnitId = recommendedUnit ? recommendedUnit.id : null;
+                const recommendedUnitId = isCourseDone ? user.progress[0].id : (recommendedUnit ? recommendedUnit.id : null);
 
                 user.progress.forEach(unit => {
                     const isLocked = unit.status === 'locked';
@@ -505,15 +542,26 @@
                         case 'completed': statusText = 'เรียนจบแล้ว'; statusColor = 'text-green-500'; break;
                     }
 
-                    const recommendationBadge = unit.id === recommendedUnitId ? `
+                    const recommendationBadge = unit.id === recommendedUnitId && !isCourseDone ? `
                         <div class="recommendation-badge">
                             <i class="fas fa-star"></i>
                             <span>แนะนำ</span>
                         </div>` : '';
+                    
+                    const reviewBadge = unit.id === recommendedUnitId && isCourseDone ? `
+                        <div class="recommendation-badge" style="background-color: #ef4444;">
+                            <i class="fas fa-sync-alt"></i>
+                            <span>แนะนำให้ทบทวน</span>
+                        </div>` : '';
+
+                    const preTestDisabled = !postFinalExamMode && (unit.status !== 'unlocked' || unit.progress > 0);
+                    const contentDisabled = !postFinalExamMode && (unit.status === 'locked');
+                    const postTestDisabled = !postFinalExamMode && (unit.status !== 'unlocked' || unit.progress < 50 || unit.progress === 100);
 
                     card.innerHTML = `
                         ${recommendationBadge}
-                        ${isLocked ? `<div class="locked-overlay"><i class="fas fa-lock text-5xl text-gray-400"></i></div>` : ''}
+                        ${reviewBadge}
+                        ${isLocked && !postFinalExamMode ? `<div class="locked-overlay"><i class="fas fa-lock text-5xl text-gray-400"></i></div>` : ''}
                         <div class="flex-grow">
                             <div class="flex justify-between items-start">
                                 <h3 class="text-xl font-bold mb-2 text-indigo-700">${unit.title}</h3>
@@ -528,9 +576,9 @@
                             </div>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto">
-                            <button data-unit-id="${unit.id}" data-test-type="pre" class="pre-test-btn btn-secondary py-2 rounded-md flex items-center justify-center ${unit.status !== 'unlocked' || unit.progress > 0 ? 'btn-disabled' : ''}" ${unit.status !== 'unlocked' || unit.progress > 0 ? 'disabled' : ''}><i class="fas fa-diagnoses mr-2"></i><span>ทดสอบก่อนเรียน</span></button>
-                            <button data-unit-id="${unit.id}" class="content-btn btn-secondary py-2 rounded-md flex items-center justify-center ${unit.status === 'locked' || unit.status === 'completed' ? 'btn-disabled' : ''}" ${unit.status === 'locked' || unit.status === 'completed' ? 'disabled' : ''}><i class="fas fa-book-open mr-2"></i><span>เนื้อหาบทเรียน</span></button>
-                            <button data-unit-id="${unit.id}" data-test-type="post" class="post-test-btn btn-primary py-2 rounded-md sm:col-span-2 flex items-center justify-center ${unit.status !== 'unlocked' || unit.progress < 50 || unit.progress === 100 ? 'btn-disabled' : ''}" ${unit.status !== 'unlocked' || unit.progress < 50 || unit.progress === 100 ? 'disabled' : ''}><i class="fas fa-graduation-cap mr-2"></i><span>ทดสอบหลังเรียน</span></button>
+                            <button data-unit-id="${unit.id}" data-test-type="pre" class="pre-test-btn btn-secondary py-2 rounded-md flex items-center justify-center ${preTestDisabled ? 'btn-disabled' : ''}" ${preTestDisabled ? 'disabled' : ''}><i class="fas fa-diagnoses mr-2"></i><span>ทดสอบก่อนเรียน</span></button>
+                            <button data-unit-id="${unit.id}" class="content-btn btn-secondary py-2 rounded-md flex items-center justify-center ${contentDisabled ? 'btn-disabled' : ''}" ${contentDisabled ? 'disabled' : ''}><i class="fas fa-book-open mr-2"></i><span>เนื้อหาบทเรียน</span></button>
+                            <button data-unit-id="${unit.id}" data-test-type="post" class="post-test-btn btn-primary py-2 rounded-md sm:col-span-2 flex items-center justify-center ${postTestDisabled ? 'btn-disabled' : ''}" ${postTestDisabled ? 'disabled' : ''}><i class="fas fa-graduation-cap mr-2"></i><span>ทดสอบหลังเรียน</span></button>
                         </div>
                     `;
                     dashboard.appendChild(card);
@@ -548,7 +596,7 @@
                 const button = event.currentTarget;
                 const unitId = parseInt(button.dataset.unitId);
                 const testType = button.dataset.testType;
-                const unit = user.progress.find(u => u.id === unitId);
+                const unit = user.progress.find(u => u.id === unitId) || initialCourseData.units.find(u => u.id === unitId);
                 
                 currentTest.unitId = unitId;
                 currentTest.type = testType;
@@ -573,50 +621,97 @@
                 testModal.classList.add('flex');
             }
 
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            function startFinalExam() {
+                currentTest.type = 'final';
+                currentTest.unitId = null;
+
+                let allQuestions = initialCourseData.units.flatMap(unit => unit.questions);
+                shuffleArray(allQuestions);
+                finalExamQuestions = allQuestions.slice(0, 20);
+                
+                testTitle.textContent = 'แบบทดสอบประมวลความรู้';
+                testQuestionsContainer.innerHTML = '';
+                finalExamQuestions.forEach((q, index) => {
+                    testQuestionsContainer.innerHTML += `
+                        <div class="mb-6">
+                            <p class="font-semibold mb-3">${index + 1}. ${q.q}</p>
+                            <div class="space-y-2">
+                                ${q.o.map(option => `
+                                    <div><label class="flex items-center p-3 rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500"><span>${option}</span></label></div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                });
+
+                testModal.classList.remove('hidden');
+                testModal.classList.add('flex');
+            }
+
             function handleSubmitTest() {
-                const unit = user.progress.find(u => u.id === currentTest.unitId);
-                const questions = unit.questions;
+                let questions;
+                if (currentTest.type === 'final') {
+                    questions = finalExamQuestions;
+                } else {
+                    const unit = user.progress.find(u => u.id === currentTest.unitId) || initialCourseData.units.find(u => u.id === currentTest.unitId);
+                    questions = unit.questions;
+                }
+
                 let score = 0;
                 questions.forEach((q, index) => {
                     const selected = document.querySelector(`input[name="q${index}"]:checked`);
                     if (selected && selected.value === q.a) score++;
                 });
+
                 const percentage = (score / questions.length) * 100;
                 testModal.classList.add('hidden');
                 showResult(percentage);
             }
 
             function showResult(percentage) {
-                const unit = user.progress.find(u => u.id === currentTest.unitId);
                 resultScore.textContent = `${percentage.toFixed(0)}%`;
                 resultScore.className = `text-4xl font-bold my-4 ${percentage >= 60 ? 'text-green-500' : 'text-red-500'}`;
                 
-                if (currentTest.type === 'pre') {
-                    unit.preTestScore = percentage;
-                    if (percentage >= 80) {
-                        resultTitle.textContent = "ยอดเยี่ยมมาก!";
-                        resultMessage.innerHTML = `ระบบตรวจพบว่าคุณมีความเข้าใจดีอยู่แล้ว<br>จึงปรับเส้นทางให้คุณข้ามไปบทต่อไปได้เลย!`;
-                        unit.progress = 100;
-                        unit.status = 'completed';
-                        unit.completionScore = percentage;
-                        unlockNextUnit(unit.id);
-                    } else {
-                        resultTitle.textContent = "เริ่มต้นได้ดี!";
-                        resultMessage.innerHTML = `ตอนนี้คุณพร้อมที่จะเรียนรู้เนื้อหาแล้ว<br>ระบบได้เตรียมวิดีโอไว้ให้คุณแล้ว`;
-                        unit.progress = 50;
-                    }
-                } else { // Post-test
-                    unit.postTestScore = percentage;
-                    if (percentage >= 60) {
-                        resultTitle.textContent = "ยินดีด้วย!";
-                        resultMessage.innerHTML = `คุณผ่านบทเรียนนี้แล้ว!<br>เส้นทางบทต่อไปถูกปลดล็อกให้คุณแล้ว`;
-                        unit.progress = 100;
-                        unit.status = 'completed';
-                        unit.completionScore = percentage;
-                        unlockNextUnit(unit.id);
-                    } else {
-                        resultTitle.textContent = "พยายามอีกนิด!";
-                        resultMessage.innerHTML = `คะแนนของคุณยังไม่ผ่านเกณฑ์<br>ระบบแนะนำให้คุณทบทวนเนื้อหาอีกครั้ง`;
+                if (currentTest.type === 'final') {
+                    user.finalExamScore = percentage;
+                    resultTitle.textContent = "ผลการทดสอบประมวลความรู้";
+                    resultMessage.innerHTML = `คุณทำแบบทดสอบสุดท้ายสำเร็จแล้ว!`;
+                    handleCourseCompletion();
+                } else {
+                    const unit = user.progress.find(u => u.id === currentTest.unitId);
+                    if (currentTest.type === 'pre') {
+                        unit.preTestScore = percentage;
+                        if (percentage >= 80) {
+                            resultTitle.textContent = "ยอดเยี่ยมมาก!";
+                            resultMessage.innerHTML = `ระบบตรวจพบว่าคุณมีความเข้าใจดีอยู่แล้ว<br>จึงปรับเส้นทางให้คุณข้ามไปบทต่อไปได้เลย!`;
+                            unit.progress = 100;
+                            unit.status = 'completed';
+                            unit.completionScore = percentage;
+                            unlockNextUnit(unit.id);
+                        } else {
+                            resultTitle.textContent = "เริ่มต้นได้ดี!";
+                            resultMessage.innerHTML = `ตอนนี้คุณพร้อมที่จะเรียนรู้เนื้อหาแล้ว<br>ระบบได้เตรียมวิดีโอไว้ให้คุณแล้ว`;
+                            unit.progress = 50;
+                        }
+                    } else { // Post-test
+                        unit.postTestScore = percentage;
+                        if (percentage >= 60) {
+                            resultTitle.textContent = "ยินดีด้วย!";
+                            resultMessage.innerHTML = `คุณผ่านบทเรียนนี้แล้ว!<br>เส้นทางบทต่อไปถูกปลดล็อกให้คุณแล้ว`;
+                            unit.progress = 100;
+                            unit.status = 'completed';
+                            unit.completionScore = percentage;
+                            unlockNextUnit(unit.id);
+                        } else {
+                            resultTitle.textContent = "พยายามอีกนิด!";
+                            resultMessage.innerHTML = `คะแนนของคุณยังไม่ผ่านเกณฑ์<br>ระบบแนะนำให้คุณทบทวนเนื้อหาอีกครั้ง`;
+                        }
                     }
                 }
                 resultModal.classList.remove('hidden');
@@ -636,7 +731,7 @@
             function showContent(event) {
                 const button = event.currentTarget;
                 const unitId = parseInt(button.dataset.unitId);
-                const unit = user.progress.find(u => u.id === unitId);
+                const unit = user.progress.find(u => u.id === unitId) || initialCourseData.units.find(u => u.id === unitId);
                 contentTitle.textContent = unit.title;
                 contentVideo.innerHTML = `<iframe width="640" height="360" class="mx-auto max-w-full rounded-lg" src="${unit.videoUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
                 contentText.innerHTML = unit.textContent;
@@ -676,6 +771,7 @@
             });
 
             submitTestBtn.addEventListener('click', handleSubmitTest);
+            startFinalExamBtn.addEventListener('click', startFinalExam);
             closeContentBtn.addEventListener('click', () => {
                 contentModal.classList.add('hidden');
                 contentVideo.innerHTML = '';
