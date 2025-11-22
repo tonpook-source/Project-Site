@@ -3,830 +3,1892 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Adaptive Learning System - Operating Systems</title>
+    <title>คอฟฟี่มาเนีย POS - Coffee Mania</title>
+    <!-- Load Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+    <!-- Load Noto Sans Thai Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
+        /* กำหนดฟอนต์หลัก */
         body {
-            font-family: 'Kanit', sans-serif;
-            background-color: #f3f4f6; /* Light Gray Background */
-            color: #1f2937;
+            font-family: 'Noto Sans Thai', sans-serif;
+            background-color: #f5f5f4; /* โทนสี Earth Tone อ่อนๆ */
         }
-        .header-gradient {
-            background: linear-gradient(90deg, #8b5cf6, #4f46e5);
+        /* กำหนดสีหลักของแบรนด์ในโทน Earth Tone */
+        .primary-bg { background-color: #8b5d3a; } /* น้ำตาลเข้ม */
+        .primary-text { color: #8b5d3a; }
+        .secondary-bg { background-color: #e8d0a9; } /* ครีมอ่อน */
+        .tertiary-bg { background-color: #c7a97e; } /* น้ำตาลกลาง */
+        .btn-active { transform: scale(0.98); }
+        /* สไตล์สำหรับปุ่มเมนูสินค้า */
+        .menu-item {
+            cursor: pointer;
+            transition: all 0.1s;
         }
-        .card {
-            background-color: white;
-            border: 1px solid #e5e7eb;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        .card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.1), 0 4px 6px -2px rgba(79, 70, 229, 0.05);
-        }
-        .progress-bar-bg {
-            background-color: #e5e7eb;
-        }
-        .progress-bar-fill {
-            background: linear-gradient(90deg, #a78bfa, #6366f1);
-            transition: width 0.5s ease-in-out;
-        }
-        .btn-primary {
-            background-color: #6366f1;
-            color: white;
-            transition: background-color 0.3s;
-        }
-        .btn-primary:hover {
-            background-color: #4f46e5;
-        }
-        .btn-secondary {
-            background-color: #e5e7eb;
-            color: #374151;
-            transition: background-color 0.3s;
-        }
-        .btn-secondary:hover {
-            background-color: #d1d5db;
-        }
-        .btn-logout {
-            background-color: #ef4444;
-            color: white;
-            transition: background-color 0.3s;
-        }
-        .btn-logout:hover {
-            background-color: #dc2626;
-        }
-        .btn-disabled {
-            background-color: #d1d5db;
-            color: #9ca3af;
-            cursor: not-allowed;
-        }
-        .modal-backdrop {
-            background-color: rgba(17, 24, 39, 0.6);
-            backdrop-filter: blur(4px);
-        }
-        .modal-content {
-            background-color: white;
-            color: #1f2937;
-        }
-        .locked-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(255, 255, 255, 0.7);
-            backdrop-filter: blur(4px);
-            z-index: 10;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0.75rem;
-        }
-        .recommendation-badge {
-            position: absolute;
-            top: -12px;
-            right: -12px;
-            background-color: #ec4899; /* Pink color */
-            color: white;
-            font-weight: 700;
-            padding: 4px 12px;
-            border-radius: 9999px;
-            font-size: 0.75rem;
+        .menu-item:hover {
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            display: flex;
-            align-items: center;
-            gap: 4px;
-            z-index: 15;
         }
+        .menu-item.selected {
+            border: 4px solid #8b5d3a;
+            box-shadow: 0 8px 10px rgba(0, 0, 0, 0.2);
+        }
+        /* สไตล์สำหรับ Modal Background */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+        /* สไตล์สำหรับคิวบาร์น้ำ */
+        .order-card-pending { border-left: 8px solid #f97316; } /* ส้ม */
+        .order-card-preparing { border-left: 8px solid #eab308; } /* เหลือง */
+        .order-card-done { border-left: 8px solid #22c55e; } /* เขียว */
     </style>
 </head>
-<body class="min-h-screen p-4 sm:p-8">
+<body class="flex flex-col min-h-screen">
 
-    <!-- Main Container -->
-    <div id="app-container" class="max-w-7xl mx-auto">
+    <!-- ส่วนหลักของแอปพลิเคชัน -->
+    <div id="app" class="flex flex-1 w-full">
+        <!-- เนื้อหาจะถูกเรนเดอร์ด้วย JavaScript -->
+        <div class="flex-1 p-4 lg:p-8">
+            <h1 class="text-2xl primary-text font-bold">กำลังโหลด...</h1>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับเลือกพนักงาน (ถูกซ่อนและจัดการใหม่) -->
+    <div id="employee-select-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 lg:p-10 transform transition-all scale-100">
+            <h2 class="text-3xl font-bold primary-text mb-6 text-center">คอฟฟี่มาเนีย POS</h2>
+            <p class="text-gray-600 mb-6 text-center">โปรดเลือกพนักงานขายเพื่อเริ่มการทำงาน</p>
+
+            <div id="employee-list" class="space-y-4 max-h-72 overflow-y-auto p-2">
+                <!-- รายชื่อพนักงานจะถูกโหลดที่นี่ -->
+            </div>
+
+            <div class="mt-8">
+                <button id="start-shift-btn" class="w-full primary-bg text-white font-bold py-3 rounded-lg shadow-lg hover:bg-opacity-90 transition duration-150 disabled:opacity-50" disabled>
+                    เริ่มกะทำงาน
+                </button>
+            </div>
+            <p class="text-xs text-gray-500 mt-4 text-center">เข้าสู่ระบบในฐานะ: <span id="current-user-info">กำลังโหลด...</span></p>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับชำระเงินสดและคำนวณเงินทอน -->
+    <div id="cash-payment-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center transform transition-all scale-100">
+            <h3 class="text-2xl font-bold primary-text mb-4">ชำระด้วยเงินสด</h3>
+            <div class="text-left space-y-3 mb-6">
+                <div class="flex justify-between text-xl font-medium">
+                    <span>ยอดรวม:</span>
+                    <span id="cash-modal-total" class="font-extrabold text-3xl primary-text">฿0.00</span>
+                </div>
+                <label for="cash-received" class="block font-medium text-gray-700 mt-4">เงินที่รับ (บาท):</label>
+                <!-- oninput="calculateChange()" ถูกผูกผ่าน JS Global Exposure -->
+                <!-- แก้ไขเป็น type="text" และเพิ่ม inputmode="numeric" เพื่อให้รับค่าตัวเลขจากคีย์บอร์ดได้ดีขึ้น -->
+                <input type="text" inputmode="numeric" id="cash-received" class="w-full p-3 border border-gray-300 rounded-lg text-2xl text-center focus:ring-tertiary-bg focus:border-tertiary-bg" placeholder="0" oninput="calculateChange()">
+                <div class="flex justify-between text-xl font-medium pt-3 border-t mt-3">
+                    <span>เงินทอน:</span>
+                    <span id="cash-modal-change" class="font-extrabold text-3xl text-green-600">฿0.00</span>
+                </div>
+                <p id="cash-error-message" class="text-red-500 text-sm mt-2 hidden">เงินที่รับไม่เพียงพอ</p>
+            </div>
+            <!-- onclick="handleCashPayment()" ถูกผูกผ่าน JS Global Exposure -->
+            <button id="confirm-cash-btn" onclick="handleCashPayment()" class="w-full primary-bg text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition disabled:opacity-50" disabled>
+                ยืนยันการชำระเงิน
+            </button>
+            <button onclick="document.getElementById('cash-payment-modal').classList.add('hidden');" class="w-full mt-2 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับชำระเงิน QR Code -->
+    <div id="qr-payment-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center transform transition-all scale-100">
+            <h3 class="text-2xl font-bold primary-text mb-4">ชำระด้วย QR Code</h3>
+            <div class="text-center space-y-3 mb-6">
+                <p class="text-xl font-medium">ยอดรวม:</p>
+                <span id="qr-modal-total" class="font-extrabold text-3xl primary-text">฿0.00</span>
+            </div>
+            
+            <img id="qr-image" src="https://placehold.co/250x250/222222/ffffff?text=QR+CODE" alt="QR Code Payment" class="mx-auto my-6 rounded-lg shadow-md" />
+            
+            <p class="text-sm text-gray-600 mb-6">กรุณาสแกน QR Code เพื่อชำระเงิน</p>
+
+            <!-- จำลองปุ่มยืนยันการสแกนสำเร็จ -->
+            <button id="confirm-qr-btn" onclick="handleQRConfirmation()" class="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition">
+                ยืนยันการสแกนสำเร็จ
+            </button>
+            <button onclick="closeQRModal()" class="w-full mt-2 py-2 text-sm text-gray-600 rounded-lg hover:bg-gray-100 transition">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal สำหรับแสดงคิวเมื่อชำระเงินเสร็จสิ้น -->
+    <div id="queue-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden">
+        <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-8 text-center transform transition-all scale-100">
+            <div class="text-4xl text-green-600 mb-4">✅</div>
+            <h3 class="text-2xl font-bold primary-text mb-2">รับออเดอร์เรียบร้อย!</h3>
+            <p class="text-gray-600 text-lg mb-6">คิวของคุณคือ:</p>
+            <div id="queue-number-display" class="text-8xl font-extrabold text-red-600 mb-8">1</div>
+            <button onclick="closeQueueModal()" class="w-full tertiary-bg text-white font-bold py-3 rounded-lg hover:bg-opacity-80 transition">
+                กลับสู่หน้า POS
+            </button>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, orderBy, getDocs, serverTimestamp, setLogLevel, limit } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // กำหนด Log Level สำหรับการดีบัก Firebase
+        setLogLevel('Debug');
+
+        // --- NEW: Firebase Configuration (ใช้ Config ที่ผู้ใช้กำหนด) ---
+        const FIREBASE_PROJECT_ID = "coffeemania-e7b07"; // ใช้ Project ID จริงในการสร้าง Collection Path
+        const FIREBASE_APP_ID = "1:801649903970:web:0ed5d4edc02f3abbc9843b";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyDx4l8EMxZEfU4B3LL48zXmjX7g03yynMY",
+            authDomain: "coffeemania-e7b07.firebaseapp.com",
+            projectId: FIREBASE_PROJECT_ID,
+            storageBucket: "coffeemania-e7b07.firebasestorage.app",
+            messagingSenderId: "801649903970",
+            appId: FIREBASE_APP_ID,
+            measurementId: "G-FF5RYCMHC1"
+        };
+        // --- END NEW CONFIG ---
+
+        // Global Variables ที่ Canvas จัดเตรียมให้ (เรายังคงกำหนดตัวแปรเหล่านี้ไว้ แต่จะใช้ Config ด้านบนเป็นหลัก)
+        const appId = FIREBASE_PROJECT_ID; 
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let app, db, auth;
+        let currentUserId = null;
+        let isAuthReady = false;
+
+        // --- NEW: Firestore Collection Path Constants (ใช้ FIREBASE_PROJECT_ID) ---
+        const FIREBASE_COLLECTIONS = {
+            // Path ถูกแก้ไขให้ใช้ Project ID ตามที่กำหนด: /artifacts/{appId}/public/data/collection
+            EMPLOYEES: `artifacts/${FIREBASE_PROJECT_ID}/public/data/employees`,
+            ORDERS: `artifacts/${FIREBASE_PROJECT_ID}/public/data/orders`,
+            PRODUCTS: `artifacts/${FIREBASE_PROJECT_ID}/public/data/products`, 
+        };
+
+        // --- Mock Inventory and Recipe Data (วัตถุดิบและปริมาณการใช้) ---
+        const MOCK_INVENTORY = {
+            'milk': { name: 'นมสด', unit: 'ลิตร', stock: 50, cost: 50 },
+            'coffee_arabica': { name: 'เมล็ด Arabica', unit: 'กรัม', stock: 10000, cost: 0.5 },
+            'coffee_robusta': { name: 'เมล็ด Robusta', unit: 'กรัม', stock: 10000, cost: 0.3 },
+            'matcha_powder': { name: 'ผงมัทฉะ', unit: 'กรัม', stock: 2000, cost: 1.2 },
+            'cocoa_powder': { name: 'ผงโกโก้', unit: 'กรัม', stock: 2000, cost: 1.0 },
+            'tea_leaves': { name: 'ใบชา', unit: 'กรัม', stock: 500, cost: 0.8 },
+        };
+
+        // Hardcoded Product list (ใช้เป็น Fallback หากโหลดจาก Firestore ไม่ได้ หรือใช้เป็นข้อมูลเริ่มต้นในการเพิ่มเข้า Firestore)
+        const MOCK_PRODUCTS = [
+            { id: 'latte', name: 'ลาเต้', price: 60, type: 'coffee', bean: ['Arabica', 'Robusta'], img: 'https://placehold.co/100x100/8b5d3a/ffffff?text=LATTE', 
+              consumption: { 'milk': 0.15, 'coffee_arabica': 15, 'coffee_robusta': 15 } },
+            { id: 'americano', name: 'อเมริกาโน่', price: 55, type: 'coffee', bean: ['Arabica', 'Robusta'], img: 'https://placehold.co/100x100/523924/ffffff?text=AMR',
+              consumption: { 'coffee_arabica': 15, 'coffee_robusta': 15 } },
+            { id: 'matcha', name: 'มัทฉะลาเต้', price: 70, type: 'non-coffee', img: 'https://placehold.co/100x100/5e8d5e/ffffff?text=MATCHA',
+              consumption: { 'matcha_powder': 10, 'milk': 0.1 } },
+            { id: 'cocoa', name: 'โกโก้เย็น', price: 50, type: 'non-coffee', img: 'https://placehold.co/100x100/3d2c2c/ffffff?text=COCOA',
+              consumption: { 'cocoa_powder': 12, 'milk': 0.12 } },
+            { id: 'tea', name: 'ชานม', price: 45, type: 'non-coffee', img: 'https://placehold.co/100x100/e9967a/ffffff?text=TEA',
+              consumption: { 'tea_leaves': 8, 'milk': 0.05 } },
+        ];
+
+
+        // สถานะของแอปพลิเคชัน
+        const appState = {
+            view: 'dashboard', // START DIRECTLY ON DASHBOARD
+            selectedEmployee: { 
+                employeeId: 'GUEST', 
+                name: 'พนักงานชั่วคราว (Guest)', 
+                startDate: new Date().toISOString().slice(0, 10), 
+                shift: 'N/A' 
+            }, // Default to Guest
+            cart: [],
+            employees: [],
+            products: [], // ถูกโหลดมาจาก Firestore (หรือ MOCK_PRODUCTS)
+            salesData: { totalRevenue: 0, todayRevenue: 0, weekRevenue: 0, monthRevenue: 0, bestSellers: [] },
+            ingredientUsage: {},
+            liveOrders: [], // ใช้สำหรับโหมดจำลองด้วย
+            queueNumber: 1,
+            unsubscribeOrders: null,
+            unsubscribeSales: null,
+            unsubscribeEmployees: null,
+            unsubscribeProducts: null, // New unsubscribe handler
+            announcementQueue: [],
+            isAnnouncing: false,
+            // NEW STATE: สถานะการเชื่อมต่อ DB
+            dbStatus: 'connecting', // 'connected', 'disconnected'
+        };
         
-        <!-- Header -->
-        <header class="mb-8 p-6 rounded-lg header-gradient text-white shadow-lg">
-            <div class="flex justify-between items-center mb-2">
-                 <h1 class="text-2xl sm:text-3xl font-bold">
-                    <i class="fas fa-cogs mr-2"></i>เส้นทางการเรียนรู้ส่วนตัวของคุณ
-                </h1>
-                <div id="user-controls" class="hidden items-center">
-                    <p id="welcome-message" class="text-md mr-4 hidden sm:block font-medium"></p>
-                    <button id="logout-btn" class="btn-logout py-2 px-4 rounded-lg font-semibold flex items-center text-sm">
-                        <i class="fas fa-sign-out-alt mr-2"></i>
-                        <span>Logout</span>
-                    </button>
-                </div>
-            </div>
-            <p class="text-lg opacity-90">วิชา: ระบบปฏิบัติการ</p>
-        </header>
+        window.appState = appState;
 
-        <!-- Overall Dashboard -->
-        <section id="overall-dashboard" class="mb-8 hidden">
-            <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <h2 class="text-xl font-bold mb-4 text-indigo-600">ภาพรวมการเรียนรู้</h2>
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 text-center">
-                    <div>
-                        <p class="text-gray-500 text-sm">ความคืบหน้าทั้งหมด</p>
-                        <p id="total-progress-text" class="text-3xl font-bold text-green-500">0%</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">หน่วยที่เรียนจบ</p>
-                        <p id="completed-units-text" class="text-3xl font-bold text-gray-800">0 / 4</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">คะแนนเฉลี่ย</p>
-                        <p id="average-score-text" class="text-3xl font-bold text-blue-500">N/A</p>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">ระดับการเรียนรู้</p>
-                        <div id="learning-level-display" class="flex items-center justify-center mt-1">
-                             <p class="text-3xl font-bold text-gray-400">N/A</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Post-Course Section -->
-        <section id="post-course-section" class="mb-8 hidden">
-             <div class="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
-                <div id="recommendation-message" class="mb-6 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded-md hidden">
-                    <p class="font-bold">เรียนครบทุกหน่วยแล้ว!</p>
-                    <p>เยี่ยมมาก! ตอนนี้ระบบแนะนำให้คุณทบทวนบทเรียนที่ได้คะแนนน้อยที่สุด เพื่อความเข้าใจที่สมบูรณ์ยิ่งขึ้น</p>
-                </div>
-                <div id="final-exam-container" class="text-center">
-                    <h2 class="text-xl font-bold mb-4 text-indigo-600">ขั้นตอนสุดท้าย: ประมวลความรู้</h2>
-                    <p id="final-exam-score-display" class="text-lg mb-4 hidden">คะแนนของคุณ: <span class="font-bold text-2xl"></span></p>
-                    <button id="start-final-exam-btn" class="btn-primary py-3 px-8 rounded-lg font-semibold text-lg">
-                        <i class="fas fa-trophy mr-2"></i>เริ่มทำแบบทดสอบประมวลความรู้ (20 ข้อ)
-                    </button>
-                </div>
-            </div>
-        </section>
-
-
-        <!-- Learning Path -->
-        <main id="dashboard" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- Unit cards will be injected here by JavaScript -->
-        </main>
-
-        <!-- Footer -->
-        <footer class="text-center py-8 mt-12 text-gray-500 text-sm">
-            <p>จัดทำโดย<br>นายธนพล อ่อนพุก SMTCT<br>6802042857043</p>
-        </footer>
-    </div>
-
-    <!-- Modals -->
-    <!-- Name Input Modal -->
-    <div id="name-modal" class="fixed inset-0 flex items-center justify-center modal-backdrop z-50">
-        <div class="modal-content p-8 rounded-lg shadow-xl w-11/12 max-w-md text-center">
-            <h2 class="text-2xl font-bold mb-4 text-indigo-600">ยินดีต้อนรับ!</h2>
-            <p class="mb-6 text-gray-600">กรุณาใส่ชื่อของคุณเพื่อเริ่มต้น</p>
-            <input type="text" id="name-input" class="w-full p-3 rounded-lg bg-gray-100 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="ชื่อของคุณ...">
-            <button id="next-to-interest-btn" class="btn-primary w-full py-3 mt-6 rounded-lg font-semibold">ถัดไป</button>
-        </div>
-    </div>
-
-    <!-- Interest Questionnaire Modal -->
-    <div id="interest-modal" class="fixed inset-0 items-center justify-center modal-backdrop z-50 hidden">
-        <div class="modal-content p-8 rounded-lg shadow-xl w-11/12 max-w-lg">
-            <h2 class="text-2xl font-bold mb-2 text-indigo-600">คุณสนใจเรื่องอะไรเป็นพิเศษ?</h2>
-            <p class="mb-6 text-gray-600">เลือก 1 ข้อ เพื่อให้ระบบจัดเส้นทางการเรียนรู้ที่เหมาะกับคุณ</p>
-            <div id="interest-options" class="space-y-3">
-                <label class="flex items-center p-4 rounded-lg border border-gray-300 hover:bg-indigo-50 cursor-pointer">
-                    <input type="radio" name="interest" value="behind-the-scenes" class="mr-4 h-5 w-5 text-indigo-600 focus:ring-indigo-500">
-                    <div>
-                        <p class="font-semibold">การทำงานเบื้องหลัง</p>
-                        <p class="text-sm text-gray-500">อยากรู้ว่า OS จัดการโปรแกรมและ CPU อย่างไร</p>
-                    </div>
-                </label>
-                <label class="flex items-center p-4 rounded-lg border border-gray-300 hover:bg-indigo-50 cursor-pointer">
-                    <input type="radio" name="interest" value="data-management" class="mr-4 h-5 w-5 text-indigo-600 focus:ring-indigo-500">
-                    <div>
-                        <p class="font-semibold">การจัดการข้อมูลและไฟล์</p>
-                        <p class="text-sm text-gray-500">สนใจว่าคอมพิวเตอร์เก็บข้อมูลในหน่วยความจำและไฟล์ได้อย่างไร</p>
-                    </div>
-                </label>
-                <label class="flex items-center p-4 rounded-lg border border-gray-300 hover:bg-indigo-50 cursor-pointer">
-                    <input type="radio" name="interest" value="all" class="mr-4 h-5 w-5 text-indigo-600 focus:ring-indigo-500" checked>
-                    <div>
-                        <p class="font-semibold">ทุกเรื่องเลย!</p>
-                        <p class="text-sm text-gray-500">เรียนตามลำดับมาตรฐานเพื่อความเข้าใจที่ครอบคลุม</p>
-                    </div>
-                </label>
-            </div>
-            <button id="start-learning-btn" class="btn-primary w-full py-3 mt-8 rounded-lg font-semibold">ยืนยันและเริ่มเรียน</button>
-        </div>
-    </div>
-
-    <!-- Test Modal -->
-    <div id="test-modal" class="fixed inset-0 items-center justify-center modal-backdrop z-50 hidden">
-        <div class="modal-content p-6 sm:p-8 rounded-lg shadow-xl w-11/12 max-w-3xl flex flex-col max-h-[90vh]">
-            <h2 id="test-title" class="text-2xl font-bold mb-4 text-indigo-600">แบบทดสอบ</h2>
-            <div id="test-questions-container" class="flex-grow overflow-y-auto pr-4"></div>
-            <div class="mt-6 text-right">
-                <button id="submit-test-btn" class="btn-primary px-8 py-3 rounded-lg font-semibold">ส่งคำตอบ</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Learning Content Modal -->
-    <div id="content-modal" class="fixed inset-0 items-center justify-center modal-backdrop z-50 hidden">
-        <div class="modal-content p-6 sm:p-8 rounded-lg shadow-xl w-11/12 max-w-6xl flex flex-col max-h-[90vh]">
-            <h2 id="content-title" class="text-3xl font-bold mb-6 text-indigo-600"></h2>
-            <div class="flex-grow grid grid-cols-1 lg:grid-cols-2 gap-8 overflow-y-auto">
-                <div id="content-video" class="rounded-lg overflow-hidden"></div>
-                <div id="content-text" class="prose max-w-none text-gray-700 overflow-y-auto pr-4"></div>
-            </div>
-            <div class="mt-6 text-right">
-                <button id="close-content-btn" class="btn-secondary px-8 py-3 rounded-lg font-semibold">ปิด</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Result Modal -->
-    <div id="result-modal" class="fixed inset-0 flex items-center justify-center modal-backdrop z-50 hidden">
-        <div class="modal-content p-8 rounded-lg shadow-xl w-11/12 max-w-md text-center">
-            <h2 id="result-title" class="text-2xl font-bold mb-4"></h2>
-            <p id="result-score" class="text-4xl font-bold my-4"></p>
-            <p id="result-message" class="text-lg text-gray-600 mb-6"></p>
-            <button id="close-result-btn" class="btn-primary w-full py-3 rounded-lg font-semibold">ดำเนินการต่อ</button>
-        </div>
-    </div>
-
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // --- DATA ---
-            const initialCourseData = {
-                units: [
-                    {
-                        id: 1,
-                        title: "ความรู้เบื้องต้นเกี่ยวกับระบบปฏิบัติการ",
-                        videoUrl: "https://www.youtube.com/embed/dgV_Th6ONiI",
-                        textContent: `
-                            <h4>ระบบปฏิบัติการคืออะไร?</h4>
-                            <p>ระบบปฏิบัติการ (Operating System หรือ OS) คือซอฟต์แวร์ที่ทำหน้าที่เป็นตัวกลางระหว่างฮาร์ดแวร์ของคอมพิวเตอร์และผู้ใช้งาน เป้าหมายหลักของ OS คือการทำให้เราสามารถใช้งานคอมพิวเตอร์ได้สะดวกสบายและมีประสิทธิภาพ</p>
-                            <h4>หน้าที่หลักของ OS</h4>
-                            <ul>
-                                <li><strong>การจัดการทรัพยากร (Resource Management):</strong> OS จะคอยจัดสรรทรัพยากรต่างๆ เช่น CPU, หน่วยความจำ, และอุปกรณ์ I/O ให้กับโปรแกรมต่างๆ ที่กำลังทำงานอยู่ เพื่อไม่ให้เกิดการขัดแย้งกัน</li>
-                                <li><strong>การเป็นตัวกลาง (Interface):</strong> OS มีส่วนติดต่อผู้ใช้ (User Interface) ให้เราสามารถสั่งงานคอมพิวเตอร์ได้ ซึ่งมีทั้งแบบกราฟิก (GUI) ที่เราใช้กันทั่วไป และแบบบรรทัดคำสั่ง (CLI) สำหรับผู้ใช้ขั้นสูง</li>
-                            </ul>
-                            <h4>ส่วนประกอบสำคัญ</h4>
-                            <p><strong>Kernel:</strong> คือหัวใจหรือแกนกลางของ OS ทำหน้าที่ควบคุมการทำงานทั้งหมดและสื่อสารกับฮาร์ดแวร์โดยตรง</p>
-                            <p><strong>Shell:</strong> คือส่วนที่รับคำสั่งจากผู้ใช้ (ไม่ว่าจะเป็นการคลิกเมาส์หรือพิมพ์คำสั่ง) แล้วนำไปแปลผลเพื่อส่งให้ Kernel ทำงานต่อไป</p>
-                        `,
-                        questions: [
-                            { q: "ส่วนประกอบใดของ OS ที่ทำหน้าที่เป็นตัวกลางระหว่างผู้ใช้กับฮาร์ดแวร์?", o: ["Kernel", "Shell", "API", "System Call"], a: "Kernel" },
-                            { q: "ข้อใดคือความแตกต่างหลักระหว่าง GUI และ CLI?", o: ["ความเร็ว", "การใช้กราฟิกเทียบกับการใช้ข้อความ", "ความปลอดภัย", "การจัดการไฟล์"], a: "การใช้กราฟิกเทียบกับการใช้ข้อความ" },
-                            { q: "Time-sharing ใน OS หมายถึงอะไร?", o: ["การแบ่งปันไฟล์ตามเวลา", "การแบ่งเวลาการใช้ CPU ให้กับหลายๆ โปรเซส", "การตั้งเวลาปิดเครื่อง", "การซิงโครไนซ์เวลากับเซิร์ฟเวอร์"], a: "การแบ่งเวลาการใช้ CPU ให้กับหลายๆ โปรเซส" },
-                            { q: "Virtual Memory คืออะไร?", o: ["หน่วยความจำเสมือนที่ใช้พื้นที่ฮาร์ดดิสก์มาช่วย RAM", "หน่วยความจำที่เร็วที่สุด", "หน่วยความจำแบบอ่านอย่างเดียว", "หน่วยความจำแคช"], a: "หน่วยความจำเสมือนที่ใช้พื้นที่ฮาร์ดดิสก์มาช่วย RAM" },
-                            { q: "ระบบปฏิบัติการแบบ Real-time (RTOS) เหมาะกับงานประเภทใด?", o: ["การเล่นเกม", "การควบคุมหุ่นยนต์ในโรงงาน", "การดูหนัง", "การทำงานเอกสาร"], a: "การควบคุมหุ่นยนต์ในโรงงาน" },
-                            { q: "ข้อใดคือหน้าที่ของ Bootloader?", o: ["โหลด Kernel ของ OS เข้าสู่หน่วยความจำ", "จัดการโปรเซส", "ลบไฟล์ขยะ", "ติดตั้งไดรเวอร์"], a: "โหลด Kernel ของ OS เข้าสู่หน่วยความจำ" },
-                            { q: "System Call คืออะไร?", o: ["การเรียกใช้บริการจาก Kernel", "การโทรศัพท์ผ่านระบบ", "คำสั่งของผู้ดูแลระบบ", "การแจ้งเตือนของระบบ"], a: "การเรียกใช้บริการจาก Kernel" },
-                            { q: "ข้อใดไม่ใช่ประเภทของ Kernel?", o: ["Monolithic", "Microkernel", "Hybrid", "Networked"], a: "Networked" },
-                            { q: "Spooling คือเทคนิคที่เกี่ยวข้องกับอุปกรณ์ใด?", o: ["CPU", "RAM", "Printer", "Mouse"], a: "Printer" },
-                            { q: "ข้อใดคือข้อดีของระบบปฏิบัติการ 64-bit เทียบกับ 32-bit?", o: ["รองรับ RAM ได้มากกว่า 4GB", "ทำงานเร็วกว่าเสมอ", "ใช้พื้นที่น้อยกว่า", "ปลอดภัยกว่าเสมอ"], a: "รองรับ RAM ได้มากกว่า 4GB" }
-                        ]
-                    },
-                    {
-                        id: 2,
-                        title: "การจัดการโปรเซส (Process Management)",
-                        videoUrl: "https://www.youtube.com/embed/3m68HnepFDw",
-                        textContent: `
-                            <h4>โปรเซส (Process) คืออะไร?</h4>
-                            <p>โปรเซส คือโปรแกรมที่กำลังทำงานอยู่ในระบบคอมพิวเตอร์ เมื่อเราเปิดโปรแกรมใดๆ ขึ้นมา OS จะสร้างโปรเซสสำหรับโปรแกรมนั้นขึ้นในหน่วยความจำ</p>
-                            <h4>สถานะของโปรเซส (Process States)</h4>
-                            <p>โปรเซสหนึ่งๆ จะมีสถานะการทำงานที่เปลี่ยนแปลงไปตลอดเวลา ได้แก่:</p>
-                            <ul>
-                                <li><strong>New:</strong> โปรเซสกำลังถูกสร้าง</li>
-                                <li><strong>Ready:</strong> โปรเซสพร้อมที่จะทำงาน แต่กำลังรอคิวเพื่อใช้ CPU</li>
-                                <li><strong>Running:</strong> โปรเซสกำลังทำงานอยู่บน CPU</li>
-                                <li><strong>Waiting:</strong> โปรเซสกำลังรอเหตุการณ์บางอย่าง เช่น รอข้อมูลจากฮาร์ดดิสก์</li>
-                                <li><strong>Terminated:</strong> โปรเซสทำงานเสร็จสิ้นแล้ว</li>
-                            </ul>
-                            <h4>การจัดตารางซีพียู (CPU Scheduling)</h4>
-                            <p>เนื่องจาก CPU มีจำกัด แต่มีหลายโปรเซสที่ต้องการใช้งาน OS จึงต้องมี "Scheduler" เพื่อตัดสินใจว่าจะให้โปรเซสใดได้ใช้ CPU ต่อไป โดยมีอัลกอริทึมหลายแบบ เช่น First-Come, First-Served (FCFS), Shortest Job First (SJF), และ Round Robin ซึ่งแต่ละแบบก็มีข้อดีข้อเสียแตกต่างกันไป</p>
-                        `,
-                        questions: [
-                            { q: "อัลกอริทึม SJF (Shortest Job First) อาจทำให้เกิดปัญหาใด?", o: ["Starvation (การอดตาย)", "Deadlock", "Context Switching บ่อยเกินไป", "หน่วยความจำรั่ว"], a: "Starvation (การอดตาย)" },
-                            { q: "Round Robin เป็นอัลกอริทึมจัดตารางแบบใด?", o: ["Preemptive", "Non-preemptive", "ทั้งสองแบบ", "ไม่ใช่ทั้งสองแบบ"], a: "Preemptive" },
-                            { q: "Inter-process Communication (IPC) คืออะไร?", o: ["การสื่อสารระหว่างโปรเซส", "การสื่อสารภายในโปรเซส", "การสื่อสารกับ Kernel", "การสื่อสารกับฮาร์ดแวร์"], a: "การสื่อสารระหว่างโปรเซส" },
-                            { q: "ข้อใดคือเงื่อนไขที่จำเป็นสำหรับการเกิด Deadlock?", o: ["Mutual Exclusion", "Hold and Wait", "No Preemption", "ทั้งหมดที่กล่าวมา"], a: "ทั้งหมดที่กล่าวมา" },
-                            { q: "การสร้างโปรเซสใหม่ใน UNIX ใช้ system call ใด?", o: ["fork()", "create()", "new()", "process()"], a: "fork()" },
-                            { q: "Zombie Process คืออะไร?", o: ["โปรเซสที่ทำงานเสร็จแล้วแต่ยังคงมีข้อมูลในตารางโปรเซส", "โปรเซสที่ติดไวรัส", "โปรเซสที่ทำงานช้า", "โปรเซสที่ถูกหยุดการทำงาน"], a: "โปรเซสที่ทำงานเสร็จแล้วแต่ยังคงมีข้อมูลในตารางโปรเซส" },
-                            { q: "Critical Section คืออะไร?", o: ["ส่วนของโค้ดที่เข้าถึงทรัพยากรที่ใช้ร่วมกัน", "ส่วนที่สำคัญที่สุดของโปรแกรม", "ส่วนที่ทำงานช้าที่สุด", "ส่วนที่ติดต่อกับผู้ใช้"], a: "ส่วนของโค้ดที่เข้าถึงทรัพยากรที่ใช้ร่วมกัน" },
-                            { q: "Priority Scheduling คืออะไร?", o: ["การจัดตารางโดยให้โปรเซสที่มีความสำคัญสูงกว่าได้ทำงานก่อน", "การจัดตารางตามลำดับความสำคัญของผู้ใช้", "การจัดตารางตามขนาดของโปรเซส", "การจัดตารางแบบสุ่ม"], a: "การจัดตารางโดยให้โปรเซสที่มีความสำคัญสูงกว่าได้ทำงานก่อน" },
-                            { q: "ข้อใดคือวิธีการป้องกัน Deadlock?", o: ["Banker's Algorithm", "FCFS", "SJF", "Round Robin"], a: "Banker's Algorithm" },
-                            { q: "Dispatcher ทำหน้าที่อะไร?", o: ["มอบหมายการควบคุม CPU ให้กับโปรเซสที่ถูกเลือกโดย scheduler", "เลือกโปรเซสต่อไป", "สร้างโปรเซสใหม่", "ลบโปรเซส"], a: "มอบหมายการควบคุม CPU ให้กับโปรเซสที่ถูกเลือกโดย scheduler" }
-                        ]
-                    },
-                    {
-                        id: 3,
-                        title: "การจัดการหน่วยความจำ (Memory Management)",
-                        videoUrl: "https://www.youtube.com/embed/uDJdvSnxXA4",
-                        textContent: `
-                            <h4>ทำไมต้องจัดการหน่วยความจำ?</h4>
-                            <p>หน่วยความจำหลัก (RAM) เป็นทรัพยากรที่มีจำกัดและมีความสำคัญอย่างยิ่ง OS ต้องจัดการหน่วยความจำเพื่อให้โปรแกรมหลายๆ ตัวสามารถทำงานพร้อมกันได้โดยไม่กวนกัน และเพื่อให้การใช้หน่วยความจำมีประสิทธิภาพสูงสุด</p>
-                            <h4>Logical vs. Physical Address</h4>
-                            <p>CPU จะสร้างที่อยู่เสมือน (Logical Address) ขึ้นมาสำหรับแต่ละโปรเซส จากนั้น Memory Management Unit (MMU) ซึ่งเป็นฮาร์ดแวร์ จะทำหน้าที่แปลงที่อยู่เสมือนนี้ให้เป็นที่อยู่จริง (Physical Address) บน RAM การทำเช่นนี้ช่วยให้แต่ละโปรเซสมีพื้นที่หน่วยความจำของตัวเองและป้องกันการเข้าถึงข้อมูลของโปรเซสอื่น</p>
-                            <h4>เทคนิคการจัดการ</h4>
-                            <ul>
-                                <li><strong>Paging:</strong> แบ่งหน่วยความจำออกเป็นส่วนๆ ขนาดเท่ากันเรียกว่า "Frame" และแบ่งโปรเซสออกเป็นส่วนๆ ขนาดเท่ากันเรียกว่า "Page" แล้วนำ Page ไปใส่ใน Frame ที่ว่าง</li>
-                                <li><strong>Segmentation:</strong> แบ่งโปรเซสออกเป็นส่วนๆ ตามโครงสร้างของโปรแกรม เช่น ส่วนโค้ด, ส่วนข้อมูล, ส่วนสแต็ก ซึ่งแต่ละส่วนมีขนาดไม่เท่ากัน</li>
-                            </ul>
-                        `,
-                        questions: [
-                            { q: "อัลกอริทึม 'Best-fit' ในการจัดสรรหน่วยความจำทำงานอย่างไร?", o: ["เลือกช่องว่างที่เล็กที่สุดที่พอดี", "เลือกช่องว่างแรกที่ใหญ่พอ", "เลือกช่องว่างที่ใหญ่ที่สุด", "เลือกช่องว่างแบบสุ่ม"], a: "เลือกช่องว่างที่เล็กที่สุดที่พอดี" },
-                            { q: "อัลกอริทึมการแทนที่ Page แบบ 'LRU' ย่อมาจากอะไร?", o: ["Least Recently Used", "Last Recently Used", "Least Randomly Used", "Last Randomly Used"], a: "Least Recently Used" },
-                            { q: "TLB (Translation Lookaside Buffer) คืออะไร?", o: ["แคชพิเศษสำหรับเก็บ Page Table ที่ใช้งานบ่อยๆ", "บัฟเฟอร์สำหรับ I/O", "หน่วยความจำสำหรับ Kernel", "ส่วนหนึ่งของฮาร์ดดิสก์"], a: "แคชพิเศษสำหรับเก็บ Page Table ที่ใช้งานบ่อยๆ" },
-                            { q: "Internal Fragmentation เกิดขึ้นกับเทคนิคใด?", o: ["Paging", "Segmentation", "Dynamic Partitioning", "Swapping"], a: "Paging" },
-                            { q: "External Fragmentation เกิดขึ้นกับเทคนิคใด?", o: ["Segmentation", "Paging", "Virtual Memory", "Page Table"], a: "Segmentation" },
-                            { q: "Demand Paging คืออะไร?", o: ["การนำ Page เข้ามาในหน่วยความจำเมื่อมีการเรียกใช้งานเท่านั้น", "การนำทุก Page เข้ามาพร้อมกัน", "การเรียงลำดับความต้องการ Page", "การลบ Page ที่ไม่ต้องการ"], a: "การนำ Page เข้ามาในหน่วยความจำเมื่อมีการเรียกใช้งานเท่านั้น" },
-                            { q: "Working Set Model เกี่ยวข้องกับเรื่องใด?", o: ["การป้องกัน Thrashing", "การจัดสรร CPU", "การจัดการไฟล์", "ความปลอดภัย"], a: "การป้องกัน Thrashing" },
-                            { q: "Compaction คือเทคนิคสำหรับแก้ปัญหาอะไร?", o: ["External Fragmentation", "Internal Fragmentation", "Page Fault", "Deadlock"], a: "External Fragmentation" },
-                            { q: "Dirty Bit (Modify Bit) ใน Page Table มีไว้เพื่ออะไร?", o: ["บอกว่า Page นั้นมีการแก้ไขข้อมูลหรือไม่", "บอกว่า Page นั้นสกปรก", "บอกว่า Page นั้นมีข้อผิดพลาด", "บอกว่า Page นั้นถูกใช้งานล่าสุดเมื่อไหร่"], a: "บอกว่า Page นั้นมีการแก้ไขข้อมูลหรือไม่" },
-                            { q: "ข้อใดคือข้อเสียของ Segmentation?", o: ["เกิด External Fragmentation", "เกิด Internal Fragmentation", "จัดการยาก", "ทำงานช้า"], a: "เกิด External Fragmentation" }
-                        ]
-                    },
-                    {
-                        id: 4,
-                        title: "การจัดการไฟล์ (File Management)",
-                        videoUrl: "https://www.youtube.com/embed/q7vKZGebvyo",
-                        textContent: `
-                            <h4>ไฟล์และระบบไฟล์</h4>
-                            <p>ไฟล์ (File) คือหน่วยของการเก็บข้อมูลที่เป็นนามธรรมที่ OS สร้างขึ้นเพื่อความสะดวกในการใช้งาน ส่วนระบบไฟล์ (File System) คือโครงสร้างที่ OS ใช้ในการจัดระเบียบ จัดเก็บ และเข้าถึงไฟล์เหล่านั้นบนอุปกรณ์จัดเก็บข้อมูล เช่น ฮาร์ดดิสก์ หรือ SSD</p>
-                            <h4>โครงสร้างไดเรกทอรี (Directory Structure)</h4>
-                            <p>เพื่อความเป็นระเบียบ ไฟล์ต่างๆ จะถูกจัดเก็บไว้ในไดเรกทอรี (หรือที่เรียกกันว่าโฟลเดอร์) ซึ่งสามารถมีโครงสร้างได้หลายแบบ เช่น:</p>
-                            <ul>
-                                <li><strong>Tree Structure:</strong> โครงสร้างแบบต้นไม้ที่ใช้กันทั่วไป มี Root Directory อยู่บนสุด และมีไดเรกทอรีย่อยซ้อนกันลงไป</li>
-                                <li><strong>Acyclic-Graph Structure:</strong> โครงสร้างที่ซับซ้อนขึ้น อนุญาตให้มีการแชร์ไฟล์หรือไดเรกทอรีร่วมกันได้</li>
-                            </ul>
-                            <h4>การจัดสรรพื้นที่ (File Allocation)</h4>
-                            <p>OS มีวิธีจัดสรรพื้นที่บนดิสก์ให้กับไฟล์หลายวิธี เช่น:</p>
-                            <p><strong>Contiguous Allocation:</strong> จองพื้นที่ต่อเนื่องกันสำหรับทั้งไฟล์ ทำให้เข้าถึงเร็วแต่เกิดปัญหาพื้นที่ว่างกระจัดกระจาย (External Fragmentation)</p>
-                            <p><strong>Linked Allocation:</strong> เก็บไฟล์แบบไม่ต่อเนื่อง โดยแต่ละบล็อกจะมีการชี้ไปยังบล็อกถัดไป แก้ปัญหา Fragmentation แต่เข้าถึงข้อมูลแบบสุ่มได้ช้า</p>
-                            <p><strong>Indexed Allocation:</strong> ใช้บล็อกพิเศษเรียกว่า "Index Block" เพื่อเก็บตำแหน่งของบล็อกข้อมูลทั้งหมดของไฟล์ เป็นวิธีที่ยืดหยุ่นและมีประสิทธิภาพ</p>
-                        `,
-                        questions: [
-                            { q: "การจัดสรรพื้นที่ไฟล์แบบ 'Linked Allocation' แก้ปัญหาของ Contiguous Allocation ได้อย่างไร?", o: ["ไม่เกิด External Fragmentation", "เข้าถึงข้อมูลได้เร็วกว่า", "ใช้พื้นที่น้อยกว่า", "ปลอดภัยกว่า"], a: "ไม่เกิด External Fragmentation" },
-                            { q: "ข้อเสียหลักของ 'Linked Allocation' คืออะไร?", o: ["ไม่เหมาะกับการเข้าถึงข้อมูลแบบ Direct Access", "เกิด Internal Fragmentation", "จำกัดขนาดไฟล์", "จัดการยาก"], a: "ไม่เหมาะกับการเข้าถึงข้อมูลแบบ Direct Access" },
-                            { q: "FAT (File Allocation Table) คือตัวอย่างของการจัดสรรพื้นที่แบบใด?", o: ["Linked Allocation", "Contiguous Allocation", "Indexed Allocation", "Hashed Allocation"], a: "Linked Allocation" },
-                            { q: "Indexed Allocation ทำงานอย่างไร?", o: ["ใช้ Index Block เพื่อชี้ไปยัง Data Blocks ทั้งหมดของไฟล์", "ใช้การเชื่อมโยงแต่ละ Block", "จองพื้นที่ต่อเนื่องกัน", "ใช้ตาราง FAT"], a: "ใช้ Index Block เพื่อชี้ไปยัง Data Blocks ทั้งหมดของไฟล์" },
-                            { q: "Free-space list ใช้ทำอะไร?", o: ["ติดตามว่า Block ใดในดิสก์ที่ยังว่างอยู่", "ลบไฟล์ที่ไม่ใช้งาน", "แสดงรายการไฟล์ทั้งหมด", "บีบอัดพื้นที่ว่าง"], a: "ติดตามว่า Block ใดในดิสก์ที่ยังว่างอยู่" },
-                            { q: "Hard Link แตกต่างจาก Symbolic Link (Soft Link) อย่างไร?", o: ["Hard Link คือการมีชื่อไฟล์หลายชื่อชี้ไปยัง inode เดียวกัน", "Symbolic Link เร็วกว่า", "Hard Link สามารถข้าม File System ได้", "Symbolic Link ปลอดภัยกว่า"], a: "Hard Link คือการมีชื่อไฟล์หลายชื่อชี้ไปยัง inode เดียวกัน" },
-                            { q: "RAID (Redundant Array of Independent Disks) คือเทคโนโลยีเกี่ยวกับอะไร?", o: ["การรวมฮาร์ดดิสก์หลายลูกเพื่อเพิ่มประสิทธิภาพหรือความน่าเชื่อถือ", "การจัดการไฟล์ขนาดใหญ่", "การบีบอัดข้อมูล", "การเข้ารหัสไฟล์"], a: "การรวมฮาร์ดดิสก์หลายลูกเพื่อเพิ่มประสิทธิภาพหรือความน่าเชื่อถือ" },
-                            { q: "ข้อใดคือหน้าที่ของ 'Directory Structure'?", o: ["จัดระเบียบไฟล์ให้ค้นหาง่าย", "เพิ่มความเร็วในการเข้าถึงไฟล์", "ลดขนาดไฟล์", "ป้องกันการเข้าถึงไฟล์"], a: "จัดระเบียบไฟล์ให้ค้นหาง่าย" },
-                            { q: "Acyclic-Graph Directory Structure อนุญาตให้เกิดสิ่งใดได้?", o: ["การแชร์ไฟล์หรือไดเรกทอรีร่วมกัน", "การมีไดเรกทอรีซ้ำซ้อน", "การสร้าง Loop", "การลบไฟล์ระบบ"], a: "การแชร์ไฟล์หรือไดเรกทอรีร่วมกัน" },
-                            { q: "การฟอร์แมตดิสก์ (Formatting) คืออะไร?", o: ["การสร้าง File System บนดิสก์เพื่อให้พร้อมใช้งาน", "การลบข้อมูลทั้งหมดอย่างถาวร", "การแบ่งพาร์ติชัน", "การตรวจสอบข้อผิดพลาดของดิสก์"], a: "การสร้าง File System บนดิสก์เพื่อให้พร้อมใช้งาน" }
-                        ]
-                    }
-                ].map(unit => ({ ...unit, status: 'locked', progress: 0, preTestScore: null, postTestScore: null, completionScore: null }))
-            };
-
-            let user = {
-                name: '',
-                progress: JSON.parse(JSON.stringify(initialCourseData.units)),
-                finalExamScore: null
-            };
-            
-            let currentTest = {
-                unitId: null,
-                type: ''
-            };
-            
-            let finalExamQuestions = [];
-
-            // --- DOM Elements ---
-            const dashboard = document.getElementById('dashboard');
-            const welcomeMessage = document.getElementById('welcome-message');
-            const userControls = document.getElementById('user-controls');
-            const logoutBtn = document.getElementById('logout-btn');
-
-            const overallDashboard = document.getElementById('overall-dashboard');
-            const totalProgressText = document.getElementById('total-progress-text');
-            const completedUnitsText = document.getElementById('completed-units-text');
-            const averageScoreText = document.getElementById('average-score-text');
-            const learningLevelDisplay = document.getElementById('learning-level-display');
-
-            const postCourseSection = document.getElementById('post-course-section');
-            const recommendationMessage = document.getElementById('recommendation-message');
-            const finalExamScoreDisplay = document.getElementById('final-exam-score-display');
-            const startFinalExamBtn = document.getElementById('start-final-exam-btn');
-            
-            const nameModal = document.getElementById('name-modal');
-            const nameInput = document.getElementById('name-input');
-            const nextToInterestBtn = document.getElementById('next-to-interest-btn');
-
-            const interestModal = document.getElementById('interest-modal');
-            const startLearningBtn = document.getElementById('start-learning-btn');
-            
-            const testModal = document.getElementById('test-modal');
-            const testTitle = document.getElementById('test-title');
-            const testQuestionsContainer = document.getElementById('test-questions-container');
-            const submitTestBtn = document.getElementById('submit-test-btn');
-
-            const contentModal = document.getElementById('content-modal');
-            const contentTitle = document.getElementById('content-title');
-            const contentVideo = document.getElementById('content-video');
-            const contentText = document.getElementById('content-text');
-            const closeContentBtn = document.getElementById('close-content-btn');
-
-            const resultModal = document.getElementById('result-modal');
-            const resultTitle = document.getElementById('result-title');
-            const resultScore = document.getElementById('result-score');
-            const resultMessage = document.getElementById('result-message');
-            const closeResultBtn = document.getElementById('close-result-btn');
-
-
-            // --- FUNCTIONS ---
-
-            function saveProgress() {
-                localStorage.setItem('osLearningProgress', JSON.stringify(user));
-            }
-
-            function loadProgress() {
-                const savedData = localStorage.getItem('osLearningProgress');
-                if (savedData) {
-                    user = JSON.parse(savedData);
-                    if (user.finalExamScore === undefined) user.finalExamScore = null;
-                    
-                    nameModal.classList.add('hidden');
-                    interestModal.classList.add('hidden');
-                    welcomeMessage.textContent = `ผู้เรียน: ${user.name}`;
-                    userControls.classList.remove('hidden');
-                    userControls.classList.add('flex');
-                    overallDashboard.classList.remove('hidden');
-                    renderAll();
-                } else {
-                    nameModal.classList.remove('hidden');
-                    nameModal.classList.add('flex');
-                    userControls.classList.add('hidden');
-                    overallDashboard.classList.add('hidden');
+        // --- Firebase Core Setup ---
+        async function initializeFirebase() {
+            try {
+                // *** FIX: ใช้ firebaseConfig ที่ hardcode ไว้แล้ว ***
+                if (!firebaseConfig || !firebaseConfig.projectId) {
+                    // หาก Config ที่ Hardcode ไว้ไม่มีค่า จะเข้าสู่โหมดจำลอง (ไม่น่าเกิดขึ้นแล้ว)
+                    console.error("FIREBASE INIT ERROR: Config is missing or invalid. Using mock data only.");
+                    isAuthReady = true; 
+                    appState.products = MOCK_PRODUCTS; 
+                    appState.dbStatus = 'disconnected'; 
+                    exposeGlobalFunctions();
+                    return;
                 }
-            }
-            
-            function renderAll() {
-                const isCourseDone = isCourseComplete();
-                if (isCourseDone) {
-                    handleCourseCompletion();
-                }
-                renderDashboard(isCourseDone);
-                renderOverallDashboard();
-            }
-
-            function isCourseComplete() {
-                return user.progress.every(u => u.status === 'completed');
-            }
-
-            function handleCourseCompletion() {
-                postCourseSection.classList.remove('hidden');
-                recommendationMessage.classList.remove('hidden');
                 
-                // Sort units by score for recommendation
-                user.progress.sort((a, b) => a.completionScore - b.completionScore);
-
-                if (user.finalExamScore !== null) {
-                    startFinalExamBtn.classList.add('hidden');
-                    finalExamScoreDisplay.classList.remove('hidden');
-                    finalExamScoreDisplay.querySelector('span').textContent = `${user.finalExamScore.toFixed(0)}%`;
-                }
-            }
-
-            function renderOverallDashboard() {
-                const completedUnits = user.progress.filter(u => u.status === 'completed');
-                const totalUnits = user.progress.length;
+                app = initializeApp(firebaseConfig);
+                db = getFirestore(app);
+                auth = getAuth(app);
                 
-                const overallProgress = (completedUnits.length / totalUnits) * 100;
-                totalProgressText.textContent = `${overallProgress.toFixed(0)}%`;
-                completedUnitsText.textContent = `${completedUnits.length} / ${totalUnits}`;
+                // 3. Expose global functions as early as possible so that onAuthStateChanged can call them
+                exposeGlobalFunctions();
 
-                const scores = completedUnits.map(u => u.completionScore).filter(score => score !== null);
-                if (scores.length > 0) {
-                    const avgScore = scores.reduce((a, b) => a + b, 0) / scores.length;
-                    averageScoreText.textContent = `${avgScore.toFixed(0)}%`;
-
-                    if (isCourseComplete()) {
-                        let levelIcon = '';
-                        let levelText = '';
-                        let levelColor = '';
-
-                        if (avgScore >= 90) {
-                            levelIcon = 'fa-crown';
-                            levelText = 'ยอดเยี่ยม';
-                            levelColor = 'text-yellow-500';
-                        } else if (avgScore >= 70) {
-                            levelIcon = 'fa-star';
-                            levelText = 'ดี';
-                            levelColor = 'text-blue-500';
-                        } else {
-                            levelIcon = 'fa-seedling';
-                            levelText = 'พื้นฐาน';
-                            levelColor = 'text-green-500';
-                        }
-                        learningLevelDisplay.innerHTML = `<i class="fas ${levelIcon} ${levelColor} text-3xl mr-2"></i><p class="text-3xl font-bold ${levelColor}">${levelText}</p>`;
+                // 1. Authentication
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUserId = user.uid;
+                        isAuthReady = true;
+                        appState.dbStatus = 'connected'; // เชื่อมต่อสำเร็จ
+                        
+                        // NEW: Listen to products first
+                        listenToProducts();
+                        listenToEmployees();
+                        listenToSalesAndUsage();
+                        // Load latest queue number once logged in
+                        loadLatestQueueNumber(); 
                     } else {
-                         learningLevelDisplay.innerHTML = `<p class="text-3xl font-bold text-gray-400">N/A</p>`;
+                        // FIX: ใช้ initialAuthToken ที่มาจาก Canvas เพื่อพยายามล็อกอิน
+                        if (initialAuthToken) {
+                            signInWithCustomToken(auth, initialAuthToken).catch(e => {
+                                console.error("Custom token sign in failed. Falling back to anonymous.", e);
+                                signInAnonymously(auth);
+                            });
+                        } else {
+                             signInAnonymously(auth);
+                        }
                     }
-
-                } else {
-                    averageScoreText.textContent = 'N/A';
-                    learningLevelDisplay.innerHTML = `<p class="text-3xl font-bold text-gray-400">N/A</p>`;
-                }
-            }
-
-            function reorderUnits(interest) {
-                let newOrderIds = [];
-                const allUnits = JSON.parse(JSON.stringify(initialCourseData.units));
-
-                switch (interest) {
-                    case 'behind-the-scenes': newOrderIds = [2, 1, 3, 4]; break;
-                    case 'data-management': newOrderIds = [3, 4, 1, 2]; break;
-                    default: newOrderIds = [1, 2, 3, 4]; break;
-                }
-
-                user.progress = newOrderIds.map(id => allUnits.find(u => u.id === id));
-                user.progress.forEach((unit, index) => {
-                    unit.status = (index === 0) ? 'unlocked' : 'locked';
+                    document.getElementById('current-user-info').textContent = currentUserId || 'N/A';
                 });
+                
+            } catch (error) {
+                console.error("CRITICAL ERROR initializing Firebase:", error);
+                // Fallback to non-functional mode if initialization fails completely
+                isAuthReady = true;
+                appState.products = MOCK_PRODUCTS; // Fallback to mock products
+                appState.dbStatus = 'disconnected'; // แจ้งสถานะไม่เชื่อมต่อ
+                exposeGlobalFunctions();
+            }
+        }
+
+        // --- NEW: Real-time Product Listener (ดึงรายการสินค้าจาก Firestore) ---
+        function listenToProducts() {
+            if (!isAuthReady || !db) return;
+
+            if (appState.unsubscribeProducts) {
+                appState.unsubscribeProducts();
             }
 
-            function renderDashboard(isCourseDone) {
-                dashboard.innerHTML = '';
-                const postFinalExamMode = isCourseDone && user.finalExamScore !== null;
-                const recommendedUnit = user.progress.find(u => u.status === 'unlocked' && u.progress < 100);
-                const recommendedUnitId = isCourseDone ? user.progress[0].id : (recommendedUnit ? recommendedUnit.id : null);
+            const productsRef = collection(db, FIREBASE_COLLECTIONS.PRODUCTS);
+            appState.unsubscribeProducts = onSnapshot(productsRef, (snapshot) => {
+                const loadedProducts = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                
+                // If loaded, use Firestore data; otherwise, use mock data as fallback
+                appState.products = loadedProducts.length > 0 ? loadedProducts : MOCK_PRODUCTS; 
+                
+                console.log(`Loaded ${appState.products.length} products from Firestore/Mock.`);
 
-                user.progress.forEach(unit => {
-                    const isLocked = unit.status === 'locked';
-                    const card = document.createElement('div');
-                    card.className = 'card rounded-lg p-6 relative flex flex-col shadow-md';
-                    
-                    let statusText, statusColor;
-                    switch(unit.status) {
-                        case 'locked': statusText = 'ล็อกอยู่'; statusColor = 'text-gray-500'; break;
-                        case 'unlocked': statusText = 'พร้อมเรียน'; statusColor = 'text-yellow-500'; break;
-                        case 'completed': statusText = 'เรียนจบแล้ว'; statusColor = 'text-green-500'; break;
-                    }
+                // Ensure UI is updated if on POS/Ordering screen
+                if (appState.view === 'pos' || appState.view === 'customerOrdering') {
+                    updateUI();
+                }
+            }, (error) => {
+                console.error("Error listening to products:", error);
+                // Fallback to mock products on error
+                appState.products = MOCK_PRODUCTS; 
+                if (appState.view === 'pos' || appState.view === 'customerOrdering') {
+                    updateUI();
+                }
+            });
+        }
+        
+        // --- NEW: Function to load the last queue number (1-99 cycle) ---
+        async function loadLatestQueueNumber() {
+            // FIX: Add DB check
+            if (!auth.currentUser || !db) return;
+             try {
+                // ใช้ค่าคงที่สำหรับ Collection Path
+                const q = query(collection(db, FIREBASE_COLLECTIONS.ORDERS), orderBy('orderTime', 'desc'), limit(1));
+                const lastOrderSnapshot = await getDocs(q);
+                if (!lastOrderSnapshot.empty) {
+                    const lastQueue = lastOrderSnapshot.docs[0].data().queueNumber;
+                    // FIX: Ensure queue number logic is sound
+                    appState.queueNumber = (lastQueue >= 99) ? 1 : lastQueue + 1;
+                } else {
+                    appState.queueNumber = 1;
+                }
+                console.log("Latest queue number loaded:", appState.queueNumber);
+            } catch (e) {
+                console.error("Error loading latest queue number:", e);
+                // Fallback to 1 on error
+                appState.queueNumber = 1;
+            }
+        }
+        // --- END NEW FUNCTION ---
+        
+        // --- Real-time Employee Listener (New) ---
+        function listenToEmployees() {
+            if (!isAuthReady || !db) return;
 
-                    const recommendationBadge = unit.id === recommendedUnitId && !isCourseDone ? `
-                        <div class="recommendation-badge">
-                            <i class="fas fa-star"></i>
-                            <span>แนะนำ</span>
-                        </div>` : '';
-                    
-                    const reviewBadge = unit.id === recommendedUnitId && isCourseDone ? `
-                        <div class="recommendation-badge" style="background-color: #ef4444;">
-                            <i class="fas fa-sync-alt"></i>
-                            <span>แนะนำให้ทบทวน</span>
-                        </div>` : '';
+            if (appState.unsubscribeEmployees) {
+                appState.unsubscribeEmployees();
+            }
 
-                    const preTestDisabled = !postFinalExamMode && (unit.status !== 'unlocked' || unit.progress > 0);
-                    const contentDisabled = !postFinalExamMode && (unit.status === 'locked');
-                    const postTestDisabled = !postFinalExamMode && (unit.status !== 'unlocked' || unit.progress < 50 || unit.progress === 100);
+            // ใช้ค่าคงที่สำหรับ Collection Path
+            const employeesRef = collection(db, FIREBASE_COLLECTIONS.EMPLOYEES);
+            appState.unsubscribeEmployees = onSnapshot(employeesRef, (snapshot) => {
+                const employees = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                appState.employees = employees;
+                
+                // Only refresh UI if in the relevant view
+                if (document.getElementById('employee-select-modal').classList.contains('hidden') === false) {
+                    renderEmployeeSelectModalList();
+                } else if (appState.view === 'employeeMgmt') {
+                    updateUI();
+                }
+            }, (error) => {
+                console.error("Error listening to employees:", error);
+            });
+        }
 
-                    card.innerHTML = `
-                        ${recommendationBadge}
-                        ${reviewBadge}
-                        ${isLocked && !postFinalExamMode ? `<div class="locked-overlay"><i class="fas fa-lock text-5xl text-gray-400"></i></div>` : ''}
-                        <div class="flex-grow">
-                            <div class="flex justify-between items-start">
-                                <h3 class="text-xl font-bold mb-2 text-indigo-700">${unit.title}</h3>
-                                <span class="font-semibold ${statusColor}">${statusText}</span>
-                            </div>
-                            <div class="mb-4 mt-4">
-                                <div class="flex justify-between text-sm text-gray-500 mb-1">
-                                    <span>ความคืบหน้า</span>
-                                    <span>${unit.progress}%</span>
+        // Helper function to render employee list in the selection modal
+        // Changed to const to ensure proper scope definition before exposure
+        const renderEmployeeSelectModalList = () => {
+            const employeeListEl = document.getElementById('employee-list');
+            const startBtn = document.getElementById('start-shift-btn');
+            const employees = appState.employees;
+            
+            // FIX: Clear existing listeners before re-rendering
+            const clone = employeeListEl.cloneNode(true);
+            employeeListEl.parentNode.replaceChild(clone, employeeListEl);
+            const newEmployeeListEl = clone;
+            newEmployeeListEl.innerHTML = '';
+
+
+            if (employees.length === 0) {
+                // Case: No employees found - Enable Guest mode
+                startBtn.disabled = false;
+                startBtn.textContent = 'เริ่มกะทำงาน (โหมด Guest)';
+                appState.selectedEmployee = { 
+                    employeeId: 'GUEST', 
+                    name: 'พนักงานชั่วคราว (Guest)', 
+                    startDate: new Date().toISOString().slice(0, 10), 
+                    shift: 'N/A' 
+                };
+
+                newEmployeeListEl.innerHTML = `
+                    <div class="p-4 rounded-lg bg-yellow-100 border border-yellow-400 text-yellow-800 text-center">
+                        <p class="font-bold">⚠️ ไม่พบข้อมูลพนักงานในระบบ</p>
+                        <p class="text-sm mt-1">คุณกำลังจะเริ่มทำงานในโหมด Guest.</p>
+                        <button onclick="openEmployeeManagementFromModal()" class="mt-3 text-sm text-yellow-800 font-semibold underline hover:text-yellow-900 transition">
+                            ➕ คลิกที่นี่เพื่อเพิ่มรายชื่อพนักงาน
+                        </button>
+                    </div>
+                `;
+                startBtn.onclick = () => {
+                    document.getElementById('employee-select-modal').classList.add('hidden');
+                    navigate('dashboard');
+                };
+
+                return;
+            }
+
+            // Case: Employees found - Force selection
+            startBtn.disabled = true;
+            startBtn.textContent = 'เริ่มกะทำงาน';
+            appState.selectedEmployee = null;
+
+            newEmployeeListEl.innerHTML = employees.map(emp => `
+                <div id="emp-${emp.id}" data-employee='${JSON.stringify(emp)}' class="p-4 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer border border-gray-200 transition employee-card">
+                    <p class="font-semibold primary-text">${emp.name} <span class="text-xs tertiary-bg text-white px-2 py-0.5 rounded-full ml-2">${emp.shift || 'ไม่ได้ระบุกะ'}</span></p>
+                    <p class="text-sm text-gray-500">รหัส: ${emp.employeeId}</p>
+                    <p class="text-xs text-gray-400">เข้าทำงาน: ${emp.startDate}</p>
+                </div>
+            `).join('');
+
+            attachEmployeeSelectListeners(employees, newEmployeeListEl, startBtn);
+        }
+
+        // --- FIX: Simplify and ensure correct attachment for employee cards ---
+        function attachEmployeeSelectListeners(employees, employeeListEl, startBtn) {
+            
+            // 1. Re-assign click handler for Start Shift button
+            startBtn.onclick = () => {
+                if (appState.selectedEmployee) {
+                    document.getElementById('employee-select-modal').classList.add('hidden');
+                    navigate('dashboard');
+                } else {
+                    console.warn("Please select an employee before starting the shift.");
+                }
+            };
+            
+            // 2. Attach ONE delegated listener to the parent container
+            employeeListEl.addEventListener('click', (e) => {
+                const card = e.target.closest('.employee-card');
+                if (!card) return;
+
+                // Reset visual selection for all cards
+                employeeListEl.querySelectorAll('.employee-card').forEach(c => c.classList.remove('bg-tertiary-bg', 'text-white'));
+                
+                // Apply visual selection to the clicked card
+                card.classList.add('bg-tertiary-bg', 'text-white');
+                
+                // Update state
+                const empData = JSON.parse(card.dataset.employee);
+                appState.selectedEmployee = empData;
+                startBtn.disabled = false;
+            });
+        }
+        // --- END FIX ---
+
+
+        // --- Real-time Sales and Usage Listener ---
+        async function listenToSalesAndUsage() {
+            if (!isAuthReady || !db) return;
+
+            if (appState.unsubscribeSales) {
+                appState.unsubscribeSales();
+            }
+
+            // ใช้ค่าคงที่สำหรับ Collection Path
+            const ordersRef = collection(db, FIREBASE_COLLECTIONS.ORDERS);
+            const q = query(ordersRef, orderBy('orderTime', 'desc')); 
+
+            let currentUsage = {};
+            for (const key in MOCK_INVENTORY) {
+                currentUsage[key] = { ...MOCK_INVENTORY[key], consumed: 0 };
+            }
+
+            appState.unsubscribeSales = onSnapshot(q, (snapshot) => {
+                let totalRevenue = 0;
+                let todayRevenue = 0;
+                let weekRevenue = 0;
+                let monthRevenue = 0;
+                let bestSellers = {};
+                
+                for (const key in currentUsage) {
+                    currentUsage[key].consumed = 0;
+                }
+
+                const now = new Date();
+                const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+                const weekStart = new Date(todayStart);
+                weekStart.setDate(todayStart.getDate() - todayStart.getDay());
+                const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+
+                // ใช้ appState.products แทน products
+                const currentProducts = appState.products.length > 0 ? appState.products : MOCK_PRODUCTS;
+
+                snapshot.docs.forEach(doc => {
+                    const order = doc.data();
+                    const orderTime = order.orderTime?.seconds ? new Date(order.orderTime.seconds * 1000) : now;
+                    const total = order.total || 0;
+
+                    totalRevenue += total;
+                    if (orderTime >= todayStart) { todayRevenue += total; }
+                    if (orderTime >= weekStart) { weekRevenue += total; }
+                    if (orderTime >= monthStart) { monthRevenue += total; }
+
+                    order.items.forEach(item => {
+                        // ใช้ appState.products ในการค้นหา
+                        const productTemplate = currentProducts.find(p => p.name === item.name);
+                        
+                        const productName = item.name + (item.options.bean ? ` (${item.options.bean})` : '');
+                        bestSellers[productName] = (bestSellers[productName] || 0) + item.qty;
+
+                        if (productTemplate && productTemplate.consumption) {
+                            for (const ingredientId in productTemplate.consumption) {
+                                let baseConsumption = productTemplate.consumption[ingredientId];
+                                
+                                if (item.options.size === 'L' && ingredientId.includes('milk')) { baseConsumption *= 1.3; }
+                                if (ingredientId.includes('coffee_') && item.options.bean) {
+                                     if (!ingredientId.includes(item.options.bean.toLowerCase())) {
+                                        if (productTemplate.consumption.hasOwnProperty(ingredientId)) { continue; }
+                                     }
+                                }
+                                
+                                const consumedAmount = baseConsumption * item.qty;
+                                
+                                if (currentUsage[ingredientId]) { currentUsage[ingredientId].consumed += consumedAmount; }
+                            }
+                        }
+                    });
+                });
+
+                const sortedBestSellers = Object.entries(bestSellers)
+                    .map(([name, count]) => ({ name, count }))
+                    .sort((a, b) => b.count - a.count)
+                    .slice(0, 5);
+                
+                appState.salesData = { totalRevenue, todayRevenue, weekRevenue, monthRevenue, bestSellers: sortedBestSellers };
+                appState.ingredientUsage = currentUsage;
+
+                if (appState.view === 'dashboard') {
+                    updateUI();
+                }
+
+            }, (error) => {
+                console.error("Error listening to sales data:", error);
+            });
+        }
+
+        // --- UI Rendering and Routing ---
+
+        function updateUI() {
+            const appElement = document.getElementById('app');
+            let content = '';
+            
+            // ใช้ appState.products แทน products
+            const currentProducts = appState.products.length > 0 ? appState.products : MOCK_PRODUCTS;
+            // หากผลิตภัณฑ์ยังโหลดไม่เสร็จ ให้แสดง Loading
+            if (currentProducts.length === 0 && !isAuthReady) {
+                 appElement.innerHTML = renderAppLayout(`<div class="p-8 text-center"><h1 class="text-3xl primary-text font-bold">กำลังโหลดข้อมูลสินค้า...</h1><p class="mt-4 text-gray-600">โปรดรอสักครู่</p></div>`);
+                 attachNavListeners();
+                 return;
+            }
+
+
+            switch (appState.view) {
+                case 'dashboard':
+                    content = renderDashboard();
+                    break;
+                case 'pos':
+                    content = renderPOS();
+                    break;
+                case 'customerOrdering': 
+                    content = renderCustomerOrderingScreen();
+                    break;
+                case 'barista':
+                    content = renderBaristaScreen();
+                    break;
+                case 'customerStatus': 
+                    content = renderCustomerView();
+                    break;
+                case 'employeeMgmt': 
+                    content = renderEmployeeManagement();
+                    break;
+                case 'employeeSelect': // Should theoretically not happen, but fallback
+                default:
+                    content = `<div class="p-8 text-center"><h1 class="text-3xl primary-text font-bold">POS พร้อมใช้งาน</h1><p class="mt-4">พนักงาน: ${appState.selectedEmployee?.name || 'N/A'}</p><p class="text-sm text-gray-500">เลือกเมนูทางซ้ายเพื่อเริ่ม</p></div>`;
+                    // Removed explicit modal show here
+                    break; 
+            }
+            appElement.innerHTML = renderAppLayout(content);
+            attachNavListeners();
+
+            if (appState.view === 'pos' || appState.view === 'customerOrdering') {
+                attachPOSListeners();
+            }
+        }
+        
+        // --- Status Banner Helper ---
+        function renderStatusBanner() {
+            // REMOVED STATUS CHECKER TO MAKE UI LOOK CLEAN LIKE THE EXAMPLE
+            // The simulation logic remains active, but the visual warning is hidden.
+            return '';
+        }
+
+        function navigate(view) {
+            // No longer check for selectedEmployee for initial entry
+            
+            appState.view = view;
+            
+            // ไม่ฟัง Orders ถ้าเป็น Disconnected mode แต่ยังคงต้องฟังในโหมด Connected
+            if (appState.dbStatus === 'connected' && (view === 'barista' || view === 'customerStatus')) {
+                listenToOrders(view);
+            } else if (appState.unsubscribeOrders) {
+                 appState.unsubscribeOrders();
+                 appState.unsubscribeOrders = null;
+            }
+            
+            updateUI();
+        }
+
+        // --- Layout Helper ---
+        function renderAppLayout(content) {
+            const employeeName = appState.selectedEmployee ? appState.selectedEmployee.name : 'ไม่ได้เลือก';
+            return `
+                <!-- Sidebar Navigation -->
+                <nav class="w-64 primary-bg text-white flex flex-col p-4 shadow-lg h-full hidden lg:flex">
+                    <div class="text-2xl font-extrabold p-2 mb-8 border-b border-white/30">
+                        Coffee Mania POS
+                    </div>
+                    <div class="space-y-2 flex-1">
+                        ${renderNavLink('dashboard', 'หน้าหลัก (สรุปยอดขาย)')}
+                        ${renderNavLink('pos', 'เมนูรายการสินค้า (POS)')}
+                        ${renderNavLink('customerOrdering', 'รายการสินค้าสำหรับลูกค้า')}
+                        ${renderNavLink('barista', 'บาร์น้ำ (รายการทำ)')}
+                        ${renderNavLink('customerStatus', 'สถานะออเดอร์ (คิว)')}
+                    </div>
+                    <div class="space-y-2 pb-4 pt-2 border-t border-white/30">
+                        ${renderNavLink('employeeMgmt', '⚙️ การจัดการพนักงาน')}
+                    </div>
+                    <div class="mt-auto p-2 border-t border-white/30 text-sm">
+                        <p class="font-bold">พนักงานปัจจุบัน:</p>
+                        <p>${employeeName}</p>
+                        <button id="logout-btn" class="text-xs mt-2 opacity-70 hover:opacity-100 transition" onclick="showEmployeeSelectModal()">เปลี่ยนพนักงาน</button>
+                    </div>
+                </nav>
+
+                <!-- Main Content Area -->
+                <main class="flex-1 overflow-y-auto flex flex-col">
+                    ${renderStatusBanner()}
+                    <div class="flex-1 p-4 lg:p-8">
+                        ${content}
+                    </div>
+                </main>
+            `;
+        }
+
+        function renderNavLink(view, label) {
+            const isActive = appState.view === view ? 'bg-white text-gray-800 font-bold shadow-md' : 'hover:bg-white/20 transition';
+            return `<a href="#" data-view="${view}" class="nav-link block p-3 rounded-lg ${isActive}">${label}</a>`;
+        }
+
+        function attachNavListeners() {
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.onclick = (e) => {
+                    e.preventDefault();
+                    navigate(e.target.dataset.view);
+                };
+            });
+            document.getElementById('logout-btn').onclick = showEmployeeSelectModal;
+        }
+
+        // --- View 1: Dashboard (หน้าหลัก) ---
+        function renderDashboard() {
+             // ... (Dashboard content remains the same)
+             const sales = appState.salesData;
+            const bestSellers = sales.bestSellers;
+            const usage = appState.ingredientUsage;
+            
+            // Convert ingredientUsage object to array for easier rendering
+            const usageArray = Object.values(usage).filter(u => u.consumed > 0)
+                .sort((a, b) => b.consumed - a.consumed);
+
+            return `
+                <h1 class="text-3xl font-bold primary-text mb-6">สรุปยอดขายและวัตถุดิบ (Real-time)</h1>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    ${renderStatCard('ยอดขายวันนี้', sales.todayRevenue)}
+                    ${renderStatCard('ยอดขายรายสัปดาห์', sales.weekRevenue)}
+                    ${renderStatCard('ยอดขายรายเดือน', sales.monthRevenue)}
+                    ${renderStatCard('รวมยอดขายทั้งหมด', sales.totalRevenue)}
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                    <!-- เมนูขายดี -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-bold primary-text mb-4 border-b pb-2">เมนูขายดี 5 อันดับแรก</h2>
+                        <ul class="space-y-3">
+                            ${bestSellers.length === 0 ? '<p class="text-gray-500">ยังไม่มีข้อมูลการขาย</p>' : bestSellers.map((item, index) => `
+                                <li class="flex justify-between items-center border-b pb-2">
+                                    <span class="font-medium">${index + 1}. ${item.name}</span>
+                                    <span class="text-lg font-semibold tertiary-bg text-white px-3 py-1 rounded-full">${item.count} แก้ว</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+
+                    <!-- วัตถุดิบที่ใช้ไป -->
+                    <div class="bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-bold primary-text mb-4 border-b pb-2">วัตถุดิบที่ใช้ไปวันนี้ (จากการสั่งซื้อ)</h2>
+                        <ul class="space-y-3">
+                            ${usageArray.length === 0 ? '<p class="text-gray-500">ยังไม่มีข้อมูลการใช้วัตถุดิบ</p>' : usageArray.map((item) => `
+                                <li class="flex justify-between items-center border-b pb-2">
+                                    <span class="font-medium">${item.name}</span>
+                                    <span class="text-lg font-semibold text-gray-700">
+                                        ${item.consumed.toFixed(2)} ${item.unit}
+                                    </span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                        <p class="text-sm text-gray-500 mt-4">หมายเหตุ: ข้อมูลอ้างอิงจากรายการสั่งซื้อทั้งหมด</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <h2 class="text-xl font-bold primary-text mb-4">ดาวน์โหลดรายงาน</h2>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button onclick="downloadReport('pdf')" class="flex-1 primary-bg text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition">
+                            <i class="fas fa-file-pdf"></i> ดาวน์โหลด PDF รายรับ-รายจ่าย
+                        </button>
+                        <button onclick="downloadReport('excel')" class="flex-1 tertiary-bg text-white font-bold py-3 rounded-lg hover:bg-opacity-80 transition">
+                            <i class="fas fa-file-excel"></i> ดาวน์โหลด Excel รายรับ-รายจ่าย
+                        </button>
+                    </div>
+                    <p class="text-sm text-gray-500 mt-4">หมายเหตุ: ฟังก์ชันดาวน์โหลดจะแสดงผลข้อมูล Mock และใช้ \`window.print\` สำหรับ PDF.</p>
+                </div>
+            `;
+        }
+
+        function renderStatCard(title, amount) {
+            return `
+                <div class="bg-white p-6 rounded-xl shadow-md">
+                    <p class="text-sm text-gray-500 font-medium">${title}</p>
+                    <p class="text-3xl font-extrabold primary-text mt-1">฿ ${amount.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                </div>
+            `;
+        }
+        
+        const downloadReport = (type) => {
+            const reportData = [
+                ['วันที่', 'รายรับ (บาท)', 'รายจ่าย (บาท)', 'กำไร (บาท)'],
+                ['2025-10-01', 12500, 3000, 9500],
+                ['2025-10-02', 13800, 3200, 10600],
+                ['2025-10-03', 11900, 2900, 9000],
+                ['รวม', 38200, 9100, 29100],
+            ];
+
+            if (type === 'pdf') {
+                const printWindow = window.open('', '', 'height=600,width=800');
+                printWindow.document.write('<html><head><title>รายงานรายรับ-รายจ่าย</title>');
+                printWindow.document.write('<style>body{font-family: \'Noto Sans Thai\', sans-serif;} table{width:100%; border-collapse: collapse;} th, td{border: 1px solid #ccc; padding: 8px; text-align: left;}</style>');
+                printWindow.document.write('</head><body>');
+                printWindow.document.write('<h1 style="color: #8b5d3a;">รายงานรายรับ-รายจ่าย คอฟฟี่มาเนีย</h1>');
+                printWindow.document.write('<table>');
+                reportData.forEach((row, i) => {
+                    printWindow.document.write(i === 0 ? '<thead><tr>' : '<tr>');
+                    row.forEach((cell, j) => {
+                        printWindow.document.write(i === 0 ? `<th>${cell}</th>` : `<td>${cell.toLocaleString()}</td>`);
+                    });
+                    printWindow.document.write(i === 0 ? '</tr></thead><tbody>' : '</tr>');
+                });
+                printWindow.document.write('</tbody></table></body></html>');
+                printWindow.document.close();
+                printWindow.print();
+            } else if (type === 'excel') {
+                const csvContent = "data:text/csv;charset=utf-8,\ufeff" + reportData.map(e => e.join(",")).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "CoffeeMania_Report_" + new Date().toISOString().slice(0, 10) + ".csv");
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            }
+        };
+
+        // --- View 2: POS / Ordering (เมนูรายการสินค้าภายในร้าน) ---
+
+        function renderPOS() {
+            const total = appState.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            const currentProducts = appState.products; // ใช้สินค้าจาก appState
+
+            return `
+                <div class="flex flex-col lg:flex-row gap-6 h-full">
+                    <!-- Menu Panel -->
+                    <div class="w-full lg:w-2/3 bg-white p-4 rounded-xl shadow-md overflow-y-auto order-2 lg:order-1">
+                        <h2 class="text-2xl font-bold primary-text mb-4">เมนูสินค้า</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="menu-grid">
+                            ${currentProducts.map(p => `
+                                <div data-product-id="${p.id}" class="menu-item bg-gray-50 rounded-lg p-3 text-center transition hover:bg-tertiary-bg hover:text-white"
+                                    data-product-id="${p.id}">
+                                    <img src="${p.img}" alt="${p.name}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2" onerror="this.onerror=null; this.src='https://placehold.co/80x80/cccccc/000000?text=${p.name.substring(0, 3)}'">
+                                    <p class="font-medium truncate">${p.name}</p>
+                                    <p class="text-sm font-bold">฿${p.price}</p>
                                 </div>
-                                <div class="progress-bar-bg w-full rounded-full h-2.5"><div class="progress-bar-fill h-2.5 rounded-full" style="width: ${unit.progress}%"></div></div>
-                            </div>
+                            `).join('')}
                         </div>
-                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-auto">
-                            <button data-unit-id="${unit.id}" data-test-type="pre" class="pre-test-btn btn-secondary py-2 rounded-md flex items-center justify-center ${preTestDisabled ? 'btn-disabled' : ''}" ${preTestDisabled ? 'disabled' : ''}><i class="fas fa-diagnoses mr-2"></i><span>ทดสอบก่อนเรียน</span></button>
-                            <button data-unit-id="${unit.id}" class="content-btn btn-secondary py-2 rounded-md flex items-center justify-center ${contentDisabled ? 'btn-disabled' : ''}" ${contentDisabled ? 'disabled' : ''}><i class="fas fa-book-open mr-2"></i><span>เนื้อหาบทเรียน</span></button>
-                            <button data-unit-id="${unit.id}" data-test-type="post" class="post-test-btn btn-primary py-2 rounded-md sm:col-span-2 flex items-center justify-center ${postTestDisabled ? 'btn-disabled' : ''}" ${postTestDisabled ? 'disabled' : ''}><i class="fas fa-graduation-cap mr-2"></i><span>ทดสอบหลังเรียน</span></button>
+                        ${currentProducts.length === 0 ? '<p class="text-center text-gray-500 mt-10">ไม่พบรายการสินค้า. หากต้องการเพิ่มสินค้า กรุณาเข้าสู่ระบบในฐานะพนักงานและเพิ่มสินค้าใน Firestore Collection: `products`</p>' : ''}
+                    </div>
+
+                    <!-- Cart and Payment Panel -->
+                    <div class="w-full lg:w-1/3 bg-white p-4 rounded-xl shadow-lg flex flex-col order-1 lg:order-2">
+                        <h2 class="text-2xl font-bold primary-text mb-4 border-b pb-2">รายการสั่งซื้อ</h2>
+                        
+                        <!-- Cart List -->
+                        <div id="cart-list" class="flex-1 overflow-y-auto space-y-3 mb-4">
+                            ${appState.cart.length === 0 ? '<p class="text-gray-500 text-center mt-10">ยังไม่มีรายการสินค้า</p>' : renderCartItems()}
                         </div>
-                    `;
-                    dashboard.appendChild(card);
-                });
-                addEventListenersToButtons();
-            }
 
-            function addEventListenersToButtons() {
-                document.querySelectorAll('.pre-test-btn:not([disabled])').forEach(btn => btn.addEventListener('click', startTest));
-                document.querySelectorAll('.post-test-btn:not([disabled])').forEach(btn => btn.addEventListener('click', startTest));
-                document.querySelectorAll('.content-btn:not([disabled])').forEach(btn => btn.addEventListener('click', showContent));
-            }
-
-            function startTest(event) {
-                const button = event.currentTarget;
-                const unitId = parseInt(button.dataset.unitId);
-                const testType = button.dataset.testType;
-                const unit = user.progress.find(u => u.id === unitId) || initialCourseData.units.find(u => u.id === unitId);
-                
-                currentTest.unitId = unitId;
-                currentTest.type = testType;
-
-                const questions = unit.questions;
-                testTitle.textContent = `แบบทดสอบ${testType === 'pre' ? 'ก่อนเรียน' : 'หลังเรียน'}: ${unit.title}`;
-                
-                testQuestionsContainer.innerHTML = '';
-                questions.forEach((q, index) => {
-                    testQuestionsContainer.innerHTML += `
-                        <div class="mb-6">
-                            <p class="font-semibold mb-3">${index + 1}. ${q.q}</p>
-                            <div class="space-y-2">
-                                ${q.o.map(option => `
-                                    <div><label class="flex items-center p-3 rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500"><span>${option}</span></label></div>
-                                `).join('')}
+                        <!-- Total & Payment -->
+                        <div class="mt-auto pt-4 border-t border-gray-200">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-xl font-bold">รวมสุทธิ</span>
+                                <span id="cart-total" class="text-3xl font-extrabold primary-text">฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                             </div>
-                        </div>`;
-                });
-
-                testModal.classList.remove('hidden');
-                testModal.classList.add('flex');
-            }
-
-            function shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-            }
-
-            function startFinalExam() {
-                currentTest.type = 'final';
-                currentTest.unitId = null;
-
-                let allQuestions = initialCourseData.units.flatMap(unit => unit.questions);
-                shuffleArray(allQuestions);
-                finalExamQuestions = allQuestions.slice(0, 20);
-                
-                testTitle.textContent = 'แบบทดสอบประมวลความรู้';
-                testQuestionsContainer.innerHTML = '';
-                finalExamQuestions.forEach((q, index) => {
-                    testQuestionsContainer.innerHTML += `
-                        <div class="mb-6">
-                            <p class="font-semibold mb-3">${index + 1}. ${q.q}</p>
-                            <div class="space-y-2">
-                                ${q.o.map(option => `
-                                    <div><label class="flex items-center p-3 rounded-md bg-gray-100 hover:bg-gray-200 cursor-pointer"><input type="radio" name="q${index}" value="${option}" class="mr-3 h-4 w-4 text-indigo-600 focus:ring-indigo-500"><span>${option}</span></label></div>
-                                `).join('')}
+                            
+                            <div class="flex gap-2 mb-4">
+                                <!-- REMOVED DISABLED PROPERTY for simulation mode -->
+                                <button onclick="processPayment('cash')" class="flex-1 py-3 primary-bg text-white font-bold rounded-lg hover:bg-opacity-90 transition disabled:opacity-50" ${total === 0 ? 'disabled' : ''}>
+                                    ชำระเงินสด
+                                </button>
+                                <button onclick="processPayment('qr')" class="flex-1 py-3 tertiary-bg text-white font-bold rounded-lg hover:bg-opacity-80 transition disabled:opacity-50" ${total === 0 ? 'disabled' : ''}>
+                                    ชำระ QR Code
+                                </button>
                             </div>
-                        </div>`;
-                });
+                            <button onclick="clearCart()" class="w-full py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition">
+                                ล้างรายการ
+                            </button>
+                        </div>
+                        ${appState.dbStatus === 'disconnected' ? '<p class="text-xs text-red-500 text-center mt-2">❗ โหมดจำลอง: ข้อมูลจะไม่ถูกบันทึกในฐานข้อมูล</p>' : ''}
+                    </div>
+                </div>
+                <!-- Product Options Modal -->
+                <div id="options-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 lg:p-8 transform transition-all scale-100">
+                        <h3 class="text-2xl font-bold primary-text mb-4 border-b pb-2">ตั้งค่ารายการ: <span id="modal-product-name"></span></h3>
+                        
+                        <div id="options-content" class="space-y-4">
+                            <!-- Options will be rendered here -->
+                        </div>
 
-                testModal.classList.remove('hidden');
-                testModal.classList.add('flex');
-            }
+                        <div class="flex justify-end gap-3 mt-6 border-t pt-4">
+                            <button onclick="closeOptionsModal()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">ยกเลิก</button>
+                            <button id="add-to-cart-btn" class="px-4 py-2 primary-bg text-white font-bold rounded-lg hover:bg-opacity-90 transition">เพิ่มลงตะกร้า</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- NEW VIEW: Customer Ordering Screen ---
+        function renderCustomerOrderingScreen() {
+            const total = appState.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            const currentProducts = appState.products; // ใช้สินค้าจาก appState
 
-            function handleSubmitTest() {
-                let questions;
-                if (currentTest.type === 'final') {
-                    questions = finalExamQuestions;
-                } else {
-                    const unit = user.progress.find(u => u.id === currentTest.unitId) || initialCourseData.units.find(u => u.id === currentTest.unitId);
-                    questions = unit.questions;
-                }
-
-                let score = 0;
-                questions.forEach((q, index) => {
-                    const selected = document.querySelector(`input[name="q${index}"]:checked`);
-                    if (selected && selected.value === q.a) score++;
-                });
-
-                const percentage = (score / questions.length) * 100;
-                testModal.classList.add('hidden');
-                showResult(percentage);
-            }
-
-            function showResult(percentage) {
-                resultScore.textContent = `${percentage.toFixed(0)}%`;
+            return `
+                <h1 class="text-3xl font-bold primary-text mb-6">รายการสินค้าสำหรับลูกค้า</h1>
+                <p class="text-gray-600 mb-6">เลือกเครื่องดื่มของคุณ แล้วชำระเงินด้วย QR Code เท่านั้น</p>
                 
-                if (currentTest.type === 'final') {
-                    if (percentage >= 80) {
-                        user.finalExamScore = percentage;
-                        resultTitle.textContent = "ยินดีด้วย คุณผ่านแล้ว!";
-                        resultMessage.innerHTML = `คุณทำแบบทดสอบประมวลความรู้ผ่านเกณฑ์แล้ว!`;
-                        resultScore.className = `text-4xl font-bold my-4 text-green-500`;
-                        handleCourseCompletion();
-                    } else {
-                        resultTitle.textContent = "พยายามอีกครั้ง";
-                        resultMessage.innerHTML = `คะแนนของคุณยังไม่ถึง 80%<br>กรุณาทดสอบอีกครั้งเพื่อประมวลความรู้ทั้งหมด`;
-                        resultScore.className = `text-4xl font-bold my-4 text-red-500`;
-                    }
-                } else {
-                    resultScore.className = `text-4xl font-bold my-4 ${percentage >= 60 ? 'text-green-500' : 'text-red-500'}`;
-                    const unit = user.progress.find(u => u.id === currentTest.unitId);
-                    if (currentTest.type === 'pre') {
-                        unit.preTestScore = percentage;
-                        if (percentage >= 80) {
-                            resultTitle.textContent = "ยอดเยี่ยมมาก!";
-                            resultMessage.innerHTML = `ระบบตรวจพบว่าคุณมีความเข้าใจดีอยู่แล้ว<br>จึงปรับเส้นทางให้คุณข้ามไปบทต่อไปได้เลย!`;
-                            unit.progress = 100;
-                            unit.status = 'completed';
-                            unit.completionScore = percentage;
-                            unlockNextUnit(unit.id);
-                        } else {
-                            resultTitle.textContent = "เริ่มต้นได้ดี!";
-                            resultMessage.innerHTML = `ตอนนี้คุณพร้อมที่จะเรียนรู้เนื้อหาแล้ว<br>ระบบได้เตรียมวิดีโอไว้ให้คุณแล้ว`;
-                            unit.progress = 50;
-                        }
-                    } else { // Post-test
-                        unit.postTestScore = percentage;
-                        if (percentage >= 60) {
-                            resultTitle.textContent = "ยินดีด้วย!";
-                            resultMessage.innerHTML = `คุณผ่านบทเรียนนี้แล้ว!<br>เส้นทางบทต่อไปถูกปลดล็อกให้คุณแล้ว`;
-                            unit.progress = 100;
-                            unit.status = 'completed';
-                            unit.completionScore = percentage;
-                            unlockNextUnit(unit.id);
-                        } else {
-                            resultTitle.textContent = "พยายามอีกนิด!";
-                            resultMessage.innerHTML = `คะแนนของคุณยังไม่ผ่านเกณฑ์<br>ระบบแนะนำให้คุณทบทวนเนื้อหาอีกครั้ง`;
-                        }
-                    }
-                }
-                resultModal.classList.remove('hidden');
-                resultModal.classList.add('flex');
-            }
+                <div class="flex flex-col lg:flex-row gap-6 h-full">
+                    <!-- Menu Panel -->
+                    <div class="w-full lg:w-2/3 bg-white p-4 rounded-xl shadow-md overflow-y-auto order-2 lg:order-1">
+                        <h2 class="text-2xl font-bold primary-text mb-4">เมนูสินค้า</h2>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4" id="menu-grid">
+                            ${currentProducts.map(p => `
+                                <div data-product-id="${p.id}" class="menu-item bg-gray-50 rounded-lg p-3 text-center transition hover:bg-tertiary-bg hover:text-white"
+                                    data-product-id="${p.id}">
+                                    <img src="${p.img}" alt="${p.name}" class="w-20 h-20 mx-auto rounded-full object-cover mb-2" onerror="this.onerror=null; this.src='https://placehold.co/80x80/cccccc/000000?text=${p.name.substring(0, 3)}'">
+                                    <p class="font-medium truncate">${p.name}</p>
+                                    <p class="text-sm font-bold">฿${p.price}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${currentProducts.length === 0 ? '<p class="text-center text-gray-500 mt-10">ไม่พบรายการสินค้า. หากต้องการเพิ่มสินค้า กรุณาเข้าสู่ระบบในฐานะพนักงานและเพิ่มสินค้าใน Firestore Collection: `products`</p>' : ''}
+                    </div>
 
-            function unlockNextUnit(completedUnitId) {
-                const completedUnitIndex = user.progress.findIndex(u => u.id === completedUnitId);
-                if (completedUnitIndex !== -1 && completedUnitIndex < user.progress.length - 1) {
-                    const nextUnit = user.progress[completedUnitIndex + 1];
-                    if (nextUnit.status === 'locked') {
-                        nextUnit.status = 'unlocked';
-                    }
-                }
-            }
+                    <!-- Cart and Payment Panel (QR Only) -->
+                    <div class="w-full lg:w-1/3 bg-white p-4 rounded-xl shadow-lg flex flex-col order-1 lg:order-2">
+                        <h2 class="text-2xl font-bold primary-text mb-4 border-b pb-2">รายการสั่งซื้อ</h2>
+                        
+                        <!-- Cart List -->
+                        <div id="cart-list" class="flex-1 overflow-y-auto space-y-3 mb-4">
+                            ${appState.cart.length === 0 ? '<p class="text-gray-500 text-center mt-10">กรุณาเลือกสินค้าจากเมนู</p>' : renderCartItems()}
+                        </div>
 
-            function showContent(event) {
-                const button = event.currentTarget;
-                const unitId = parseInt(button.dataset.unitId);
-                const unit = user.progress.find(u => u.id === unitId) || initialCourseData.units.find(u => u.id === unitId);
-                contentTitle.textContent = unit.title;
-                contentVideo.innerHTML = `<iframe width="640" height="360" class="mx-auto max-w-full rounded-lg" src="${unit.videoUrl}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>`;
-                contentText.innerHTML = unit.textContent;
-                contentModal.classList.remove('hidden');
-                contentModal.classList.add('flex');
+                        <!-- Total & Payment -->
+                        <div class="mt-auto pt-4 border-t border-gray-200">
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-xl font-bold">รวมสุทธิ</span>
+                                <span id="cart-total" class="text-3xl font-extrabold primary-text">฿${total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                            </div>
+                            
+                            <div class="flex gap-2 mb-4">
+                                <!-- REMOVED DISABLED PROPERTY for simulation mode -->
+                                <button onclick="processPayment('qr')" class="w-full py-3 tertiary-bg text-white font-bold rounded-lg hover:bg-opacity-80 transition disabled:opacity-50" ${total === 0 ? 'disabled' : ''}>
+                                    ชำระเงินด้วย QR Code เท่านั้น
+                                </button>
+                            </div>
+                            <button onclick="clearCart()" class="w-full py-2 text-sm text-red-600 border border-red-200 rounded-lg hover:bg-red-50 transition">
+                                ล้างรายการ
+                            </button>
+                        </div>
+                        ${appState.dbStatus === 'disconnected' ? '<p class="text-xs text-red-500 text-center mt-2">❗ โหมดจำลอง: ข้อมูลจะไม่ถูกบันทึกในฐานข้อมูล</p>' : ''}
+                    </div>
+                </div>
+                <!-- Product Options Modal (reused from POS) -->
+                <div id="options-modal" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center hidden">
+                    <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 lg:p-8 transform transition-all scale-100">
+                        <h3 class="text-2xl font-bold primary-text mb-4 border-b pb-2">ตั้งค่ารายการ: <span id="modal-product-name"></span></h3>
+                        
+                        <div id="options-content" class="space-y-4">
+                            <!-- Options will be rendered here -->
+                        </div>
+
+                        <div class="flex justify-end gap-3 mt-6 border-t pt-4">
+                            <button onclick="closeOptionsModal()" class="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition">ยกเลิก</button>
+                            <button id="add-to-cart-btn" class="px-4 py-2 primary-bg text-white font-bold rounded-lg hover:bg-opacity-90 transition">เพิ่มลงตะกร้า</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderCartItems() {
+            return appState.cart.map((item, index) => `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div class="flex-1">
+                        <p class="font-medium">${item.name} <span class="text-sm text-gray-500">x${item.qty}</span></p>
+                        <p class="text-xs text-gray-500">${item.options.size}, ${item.options.sweetness}${item.options.bean ? ', ' + item.options.bean : ''}</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-semibold primary-text">฿${(item.price * item.qty).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <button onclick="removeItemFromCart(${index})" class="text-red-500 hover:text-red-700 transition ml-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm4 0a1 1 0 100 2v6a1 1 0 100-2V8z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // FIX: Use Event Delegation for menu items
+        function attachPOSListeners() {
+            
+            const menuGrid = document.getElementById('menu-grid');
+            if (!menuGrid) return; 
+
+            // Clone and replace to safely remove old event listeners
+            const clone = menuGrid.cloneNode(true);
+            menuGrid.parentNode.replaceChild(clone, menuGrid);
+            const newMenuGrid = clone;
+            
+            // 1. Attach ONE delegated listener to the new menu container
+            newMenuGrid.addEventListener('click', (e) => {
+                const menuItem = e.target.closest('.menu-item');
+                if (menuItem && menuItem.dataset.productId) {
+                    selectProduct(menuItem.dataset.productId);
+                }
+            });
+        }
+
+        // --- POS Logic ---
+
+        let currentProductForOptions = null;
+
+        const selectProduct = (id) => { // Defined locally
+            // ใช้ appState.products ในการค้นหา
+            const product = appState.products.find(p => p.id === id);
+            
+            if (!product) {
+                console.error(`Product with ID ${id} not found.`);
+                return;
             }
             
-            function handleLogout() {
-                localStorage.removeItem('osLearningProgress');
-                location.reload();
+            // Initialize options, assuming 'M' size, 'Normal' sweetness, and first bean type as default
+            currentProductForOptions = { 
+                ...product, 
+                options: { 
+                    size: 'M', 
+                    sweetness: 'Normal', 
+                    bean: product.bean ? product.bean[0] : null 
+                } 
+            };
+
+            document.getElementById('modal-product-name').textContent = product.name;
+            const optionsContentEl = document.getElementById('options-content');
+
+            let optionsHtml = `
+                <div class="flex items-center justify-between">
+                    <label class="font-medium">ขนาดแก้ว:</label>
+                    <div class="flex space-x-2" id="size-options">
+                        ${renderOptionButton('size', 'S', 'S (เล็ก)', 0)}
+                        ${renderOptionButton('size', 'M', 'M (กลาง)', 0)}
+                        ${renderOptionButton('size', 'L', 'L (ใหญ่)', 10)}
+                    </div>
+                </div>
+                <div class="flex items-center justify-between">
+                    <label class="font-medium">ระดับความหวาน:</label>
+                    <div class="flex space-x-2" id="sweetness-options">
+                        ${renderOptionButton('sweetness', 'Normal', 'ปกติ', 0)}
+                        ${renderOptionButton('sweetness', '75', '75%', 0)}
+                        ${renderOptionButton('sweetness', '50', '50%', 0)}
+                        ${renderOptionButton('sweetness', '25', '25%', 0)}
+                        ${renderOptionButton('sweetness', '0', 'ไม่หวาน', 0)}
+                    </div>
+                </div>
+            `;
+            if (product.type === 'coffee' && product.bean) {
+                optionsHtml += `
+                    <div class="flex items-center justify-between">
+                        <label class="font-medium">ชนิดเมล็ดกาแฟ:</label>
+                        <div class="flex space-x-2" id="bean-options">
+                            ${product.bean.map(b => renderOptionButton('bean', b, b, b === product.bean[0] ? 0 : 5)).join('')}
+                        </div>
+                    </div>
+                `;
             }
 
-            // --- EVENT LISTENERS ---
-            nextToInterestBtn.addEventListener('click', () => {
-                const name = nameInput.value.trim();
-                if (name) {
-                    user.name = name;
-                    nameModal.classList.add('hidden');
-                    interestModal.classList.remove('hidden');
-                    interestModal.classList.add('flex');
+            optionsContentEl.innerHTML = optionsHtml;
+            attachOptionListeners(product);
+
+            document.getElementById('add-to-cart-btn').onclick = addToCart;
+            document.getElementById('options-modal').classList.remove('hidden');
+        };
+
+        function renderOptionButton(type, value, label, priceChange) {
+            const isSelected = currentProductForOptions.options[type] === value;
+            const priceText = priceChange > 0 ? ` (+฿${priceChange})` : '';
+            return `
+                <button data-type="${type}" data-value="${value}" data-price-change="${priceChange}"
+                        class="option-btn ${type}-btn px-3 py-1 text-sm rounded-full border transition ${isSelected ? 'primary-bg text-white' : 'bg-gray-100 border-gray-300 hover:bg-gray-200 hover:border-primary-bg'}">
+                    ${label}${priceText}
+                </button>
+            `;
+        }
+
+        function attachOptionListeners(product) {
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const type = e.target.dataset.type;
+                    const value = e.target.dataset.value;
+                    
+                    document.querySelectorAll(`.${type}-btn`).forEach(b => {
+                        b.classList.remove('primary-bg', 'text-white');
+                        b.classList.add('bg-gray-100');
+                    });
+                    e.target.classList.remove('bg-gray-100');
+                    e.target.classList.add('primary-bg', 'text-white');
+
+                    currentProductForOptions.options[type] = value;
+                    
+                    // ใช้ appState.products ในการค้นหา
+                    const baseProduct = appState.products.find(p => p.id === currentProductForOptions.id);
+                    let newPrice = baseProduct.price;
+                    if (currentProductForOptions.options.size === 'L') {
+                        newPrice += 10;
+                    }
+                    if (currentProductForOptions.options.bean && baseProduct.bean && currentProductForOptions.options.bean[0] && currentProductForOptions.options.bean !== baseProduct.bean[0]) {
+                        // Assumption: The premium bean type (if defined) adds 5 THB, otherwise the base price is used
+                        newPrice += 5; 
+                    }
+                    currentProductForOptions.price = newPrice;
+                };
+            });
+        }
+
+        const closeOptionsModal = () => { // Defined locally
+            document.getElementById('options-modal').classList.add('hidden');
+            currentProductForOptions = null;
+        };
+
+        function addToCart() {
+            if (!currentProductForOptions) return;
+
+            const { id, name, price, options } = currentProductForOptions;
+
+            const existingItemIndex = appState.cart.findIndex(item =>
+                item.id === id &&
+                item.options.size === options.size &&
+                item.options.sweetness === options.sweetness &&
+                item.options.bean === options.bean
+            );
+
+            if (existingItemIndex > -1) {
+                appState.cart[existingItemIndex].qty += 1;
+            } else {
+                appState.cart.push({ id, name, price, qty: 1, options });
+            }
+
+            appState.cart.sort((a, b) => a.name.localeCompare(b.name));
+            closeOptionsModal();
+            updateUI();
+        }
+        
+        const clearCart = () => { // Defined locally
+            appState.cart = [];
+            updateUI();
+        }
+
+        const removeItemFromCart = (index) => { // Defined locally
+            appState.cart.splice(index, 1);
+            updateUI();
+        };
+
+        // --- New Cash Payment and Change Calculation Logic ---
+
+        const calculateChange = () => {
+            const totalEl = document.getElementById('cash-modal-total');
+            const receivedEl = document.getElementById('cash-received');
+            const changeEl = document.getElementById('cash-modal-change');
+            const errorEl = document.getElementById('cash-error-message');
+            const confirmBtn = document.getElementById('confirm-cash-btn');
+
+            const totalString = totalEl.textContent.replace('฿', '').replace(/,/g, '');
+            const total = parseFloat(totalString) || 0;
+            
+            const received = parseFloat(receivedEl.value) || 0;
+            const change = received - total;
+
+            const formattedChange = (change > 0 ? change : 0).toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            changeEl.textContent = '฿' + formattedChange;
+            
+            if (received >= total) {
+                confirmBtn.disabled = false;
+                errorEl.classList.add('hidden');
+                changeEl.classList.remove('text-red-600');
+                changeEl.classList.add('text-green-600');
+            } else {
+                confirmBtn.disabled = true;
+                if (received > 0) {
+                     errorEl.classList.remove('hidden');
                 } else {
-                    alert('กรุณาใส่ชื่อของคุณ');
+                     errorEl.classList.add('hidden');
+                }
+                changeEl.classList.remove('text-green-600');
+                changeEl.classList.add('text-red-600');
+            }
+        };
+
+        const handleCashPayment = async () => {
+            const received = parseFloat(document.getElementById('cash-received').value);
+            const totalString = document.getElementById('cash-modal-total').textContent.replace('฿', '').replace(/,/g, '');
+            const total = parseFloat(totalString);
+            
+            if (received < total) {
+                document.getElementById('cash-error-message').classList.remove('hidden');
+                return;
+            }
+            
+            document.getElementById('cash-payment-modal').classList.add('hidden');
+            await saveOrder('cash'); 
+        };
+        
+        // --- New QR Code Payment Logic ---
+
+        const showQRPaymentModal = () => {
+            const total = appState.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            if (total === 0) return;
+
+            const modalEl = document.getElementById('qr-payment-modal');
+            const formattedTotal = total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            
+            document.getElementById('qr-modal-total').textContent = '฿' + formattedTotal;
+            
+            const qrText = encodeURIComponent(`ยอด: ${total.toFixed(2)} บาท`);
+            document.getElementById('qr-image').src = `https://placehold.co/250x250/222222/ffffff?text=QR+CODE%0A%E0%B8%A2%E0%B8%AD%E0%B8%94%3A+${total.toFixed(2)}`;
+            
+            modalEl.classList.remove('hidden');
+        };
+
+        const handleQRConfirmation = async () => {
+            console.log("Simulating QR payment confirmation...");
+            document.getElementById('qr-payment-modal').classList.add('hidden');
+            await saveOrder('qr');
+        };
+        
+        const closeQRModal = () => {
+            document.getElementById('qr-payment-modal').classList.add('hidden');
+        };
+
+
+        // --- NEW: Simulation function for disconnected mode ---
+        function simulateOrder(method) {
+            console.warn(`Database disconnected. Simulating order for method: ${method}. Data WILL NOT BE SAVED.`);
+            
+            const currentQueue = appState.queueNumber;
+            
+            // Create a mock order object for the local liveOrders array
+            const mockOrder = {
+                id: `MOCK-${Date.now()}`,
+                queueNumber: currentQueue,
+                items: appState.cart.map(item => ({
+                    name: item.name,
+                    qty: item.qty,
+                    pricePerUnit: item.price,
+                    options: item.options
+                })),
+                total: appState.cart.reduce((sum, item) => sum + item.price * item.qty, 0),
+                paymentMethod: method,
+                status: 'pending',
+                orderTime: { seconds: Math.floor(Date.now() / 1000) },
+                sellerId: appState.selectedEmployee?.employeeId || 'GUEST',
+                customerNote: 'MOCK Order'
+            };
+
+            // Add to local state and update the Barista/Customer views immediately
+            appState.liveOrders.unshift(mockOrder); // Add to the front for easy viewing
+            
+            // Update local queue number and clear cart
+            appState.queueNumber = (currentQueue >= 99) ? 1 : currentQueue + 1;
+            appState.cart = [];
+            
+            // Use true to indicate Simulation mode in modal
+            showQueueModal(currentQueue, true); 
+        }
+
+
+        // --- Payment Routing and Database Save Logic ---
+
+        async function saveOrder(method) { // Defined locally
+            // --- MODIFICATION: Check DB status for simulation ---
+            if (appState.dbStatus === 'disconnected') {
+                return simulateOrder(method); // Bypasses DB save and uses local queue
+            }
+            // --- END MODIFICATION ---
+            
+            const cart = appState.cart;
+            const totalAmount = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            
+            const currentQueue = appState.queueNumber;
+            const orderData = {
+                queueNumber: currentQueue,
+                items: cart.map(item => ({
+                    name: item.name,
+                    qty: item.qty,
+                    pricePerUnit: item.price,
+                    options: item.options
+                })),
+                total: totalAmount,
+                paymentMethod: method,
+                status: 'pending',
+                orderTime: serverTimestamp(),
+                sellerId: appState.selectedEmployee?.employeeId || 'UNKNOWN',
+                customerNote: appState.view === 'customerOrdering' ? 'Customer Self-Order (QR)' : 'POS Order'
+            };
+            
+            try {
+                // FIX 1: Explicitly check for DB connection before proceeding
+                if (!db) {
+                    throw new Error("Cannot connect to the database. (No Firebase Config)");
+                }
+                // END FIX 1
+                
+                // ใช้ค่าคงที่สำหรับ Collection Path
+                const ordersRef = collection(db, FIREBASE_COLLECTIONS.ORDERS);
+                await addDoc(ordersRef, orderData);
+
+                // FIX: Queue number logic (1-99 cycle) - This logic is already correct
+                appState.queueNumber = (currentQueue >= 99) ? 1 : currentQueue + 1;
+                
+                appState.cart = [];
+                showQueueModal(currentQueue);
+
+            } catch (e) {
+                console.error("Error processing order:", e);
+                const modalEl = document.getElementById('queue-modal');
+                modalEl.querySelector('h3').textContent = 'เกิดข้อผิดพลาด!';
+                modalEl.querySelector('.text-4xl').textContent = '❌';
+                // FIX 2: Use the error message from the exception for user feedback
+                modalEl.querySelector('.text-lg').textContent = 'ไม่สามารถบันทึกออเดอร์ได้: ' + (e.message || 'ข้อผิดพลาดที่ไม่ทราบสาเหตุ');
+                // END FIX 2
+                modalEl.querySelector('#queue-number-display').textContent = 'Error';
+                modalEl.classList.remove('hidden');
+            }
+        }
+
+        const processPayment = (method) => { // Defined locally
+            const total = appState.cart.reduce((sum, item) => sum + item.price * item.qty, 0);
+            if (total === 0) return;
+
+            if (method === 'qr') {
+                showQRPaymentModal();
+            } else if (method === 'cash') {
+                if(appState.view === 'pos') {
+                    const modalEl = document.getElementById('cash-payment-modal');
+                    const formattedTotal = total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                    
+                    document.getElementById('cash-modal-total').textContent = '฿' + formattedTotal;
+                    document.getElementById('cash-received').value = '';
+                    document.getElementById('cash-modal-change').textContent = '฿0.00';
+                    document.getElementById('cash-error-message').classList.add('hidden');
+                    document.getElementById('confirm-cash-btn').disabled = true;
+                    modalEl.classList.remove('hidden');
+                } else {
+                    console.error("Cash payment is only allowed in POS mode.");
+                }
+            }
+        };
+
+        const showQueueModal = (queueNum, isSimulation = false) => { // Defined locally
+            const modalEl = document.getElementById('queue-modal');
+            modalEl.querySelector('h3').textContent = 'รับออเดอร์เรียบร้อย!';
+            modalEl.querySelector('.text-4xl').textContent = '✅';
+            
+            if (isSimulation) {
+                 modalEl.querySelector('.text-lg').innerHTML = 'คิวของคุณคือ: <br><span class="text-red-500 text-sm font-semibold"> (ข้อมูลไม่ถูกบันทึก)</span>';
+                 // ซ่อนปุ่ม "กลับสู่หน้า POS" และใช้ setTimeout แทน
+                 modalEl.querySelector('button').classList.add('hidden');
+                 setTimeout(closeQueueModal, 3000); // ปิด Modal หลังจาก 3 วินาที
+            } else {
+                modalEl.querySelector('.text-lg').textContent = 'คิวของคุณคือ:';
+                modalEl.querySelector('button').classList.remove('hidden'); // แสดงปุ่มปกติ
+            }
+            
+            modalEl.querySelector('#queue-number-display').textContent = queueNum;
+            modalEl.classList.remove('hidden');
+        };
+
+        const closeQueueModal = () => { // Defined locally
+            document.getElementById('queue-modal').classList.add('hidden');
+            if (appState.view === 'customerOrdering') {
+                updateUI();
+            } else {
+                navigate('pos');
+            }
+        };
+
+        // --- View 3: Barista Screen (บาร์น้ำ) ---
+        function renderBaristaScreen() {
+             // ... (Barista screen remains the same)
+             const orders = appState.liveOrders.filter(o => o.status !== 'done').sort((a, b) => a.queueNumber - b.queueNumber);
+            
+            return `
+                <h1 class="text-3xl font-bold primary-text mb-6">บาร์น้ำ: รายการที่ต้องทำ</h1>
+                ${appState.dbStatus === 'disconnected' ? '<p class="text-sm text-red-500 mb-4">❗ โหมดจำลอง: รายการทำจะไม่ถูกอัพเดตแบบ Real-time และจะไม่บันทึกสถานะ</p>' : ''}
+                <p class="text-gray-600 mb-4">แสดงเฉพาะสถานะ 'รอรับ' และ 'กำลังทำ' อัพเดทเรียลไทม์</p>
+                <div id="barista-orders-list" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                    ${orders.length === 0 ? '<p class="col-span-full text-center text-gray-500 text-xl py-10">ยังไม่มีรายการสั่งซื้อที่รอทำ</p>' : orders.map(renderOrderCard).join('')}
+                </div>
+            `;
+        }
+
+        function renderOrderCard(order) {
+            let statusClass, statusText;
+            
+            switch(order.status) {
+                case 'pending':
+                    statusClass = 'order-card-pending';
+                    statusText = 'รอรับออเดอร์';
+                    break;
+                case 'preparing':
+                    statusClass = 'order-card-preparing';
+                    statusText = 'กำลังทำ';
+                    break;
+                default:
+                    statusClass = 'order-card-done';
+                    statusText = 'เสร็จสมบูรณ์';
+            }
+            
+            // ในโหมดจำลอง ปุ่มจะถูกปิดการใช้งานเมื่อเข้าสู่สถานะ DONE เพื่อป้องกันการกดซ้ำ และยังทำงานได้ในสถานะ PENDING/PREPARING
+            const isButtonDisabled = appState.dbStatus === 'connected' ? '' : ''; // ปุ่มจะเปิดใช้งานเสมอในโหมดจำลอง
+
+            return `
+                <div class="bg-white p-4 rounded-xl shadow-md ${statusClass} flex flex-col justify-between" data-order-id="${order.id}">
+                    <div>
+                        <div class="flex justify-between items-center mb-3 border-b pb-2">
+                            <span class="text-xs text-gray-500">${new Date(order.orderTime.seconds * 1000).toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' })}</span>
+                            <span class="text-xl font-extrabold tertiary-bg text-white px-3 py-1 rounded-lg">คิว #${order.queueNumber}</span>
+                        </div>
+                        <p class="text-lg font-bold primary-text mb-2">รายการ:</p>
+                        <ul class="text-sm space-y-1 mb-4">
+                            ${order.items.map(item => `
+                                <li>
+                                    <span class="font-semibold">${item.name} x${item.qty}</span>
+                                    <span class="text-xs text-gray-500 ml-1">(${item.options.size}, ${item.options.sweetness})</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                    
+                    <div>
+                        <p class="text-sm font-medium text-gray-700 mt-2">สถานะ: <span class="font-bold">${statusText}</span></p>
+                        <div class="mt-3 flex flex-col gap-2">
+                            ${order.status === 'pending' ?
+                                `<button onclick="updateOrderStatus('${order.id}', 'preparing')" class="w-full py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition disabled:opacity-50" ${isButtonDisabled}>รับออเดอร์ (เริ่มทำ)</button>`
+                                : ''
+                            }
+                            ${order.status === 'preparing' ?
+                                `<button onclick="updateOrderStatus('${order.id}', 'done', ${order.queueNumber})" class="w-full py-2 bg-green-500 text-white font-bold rounded-lg hover:bg-green-600 transition disabled:opacity-50" ${isButtonDisabled}>เสร็จแล้ว</button>
+                                 <button onclick="updateOrderStatus('${order.id}', 'pending')" class="w-full py-1 text-xs text-gray-500 border border-gray-300 rounded-lg hover:bg-gray-100 transition mt-1 disabled:opacity-50" ${isButtonDisabled}>ย้ายกลับไปรอ</button>`
+                                : ''
+                            }
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // --- TTS Serial Queue Logic (New) ---
+
+        async function processAnnouncementQueue() {
+            if (appState.isAnnouncing || appState.announcementQueue.length === 0) {
+                return;
+            }
+
+            appState.isAnnouncing = true;
+            const queueNumToAnnounce = appState.announcementQueue.shift();
+            
+            await callQueueNumber(queueNumToAnnounce);
+            await new Promise(resolve => setTimeout(resolve, 3000)); 
+
+            appState.isAnnouncing = false;
+
+            if (appState.announcementQueue.length > 0) {
+                processAnnouncementQueue();
+            }
+        }
+
+        // --- MODIFIED: updateOrderStatus handles both connected and disconnected mode ---
+        async function updateOrderStatus(orderId, newStatus, queueNumber = null) {
+            
+            if (appState.dbStatus === 'disconnected') {
+                // Simulation Mode: Update local array only
+                const orderIndex = appState.liveOrders.findIndex(o => o.id === orderId);
+                if (orderIndex !== -1) {
+                    appState.liveOrders[orderIndex].status = newStatus;
+                    // For simulation, we remove 'done' orders instantly
+                    if (newStatus === 'done') {
+                         appState.liveOrders.splice(orderIndex, 1);
+                         
+                         // Simulate announcement using browser TTS as fallback is the only way here
+                         const userQuery = `ประกาศเรียกคิวหมายเลข ${queueNumber} สามารถรับเครื่องดื่มของท่านที่บาร์น้ำได้เลยค่ะ`;
+                         const synth = window.speechSynthesis;
+                         const utterance = new SpeechSynthesisUtterance(userQuery);
+                         utterance.lang = 'th-TH';
+                         synth.speak(utterance);
+                    }
+                    updateUI();
+                }
+                return;
+            }
+            
+            // Connected Mode: Proceed with Firebase update
+            try {
+                if (!db) {
+                    console.error("Database connection failed. Cannot update order status.");
+                    return;
+                }
+                
+                // ใช้ค่าคงที่สำหรับ Collection Path
+                const orderDocRef = doc(db, FIREBASE_COLLECTIONS.ORDERS, orderId);
+                await updateDoc(orderDocRef, { status: newStatus });
+
+                if (newStatus === 'done' && queueNumber !== null) {
+                    // This calls the Firebase TTS API (callQueueNumber)
+                    appState.announcementQueue.push(queueNumber);
+                    processAnnouncementQueue(); 
+                }
+                
+                if (appState.view === 'barista') {
+                    updateUI(); 
+                }
+            } catch (e) {
+                console.error("Error updating order status:", e);
+                console.error("เกิดข้อผิดพลาดในการอัพเดทสถานะ:", e.message);
+            }
+        }
+        
+        // --- TTS Helper Functions (for Calling Queue Number) ---
+        const base64ToArrayBuffer = (base64) => {
+            const binaryString = atob(base64);
+            const len = binaryString.length;
+            const bytes = new Uint8Array(len);
+            for (let i = 0; i < len; i++) {
+                bytes[i] = binaryString.charCodeAt(i);
+            }
+            return bytes.buffer;
+        };
+
+        const pcmToWav = (pcmData, sampleRate) => {
+            const numChannels = 1;
+            const bytesPerSample = 2;
+            const blockAlign = numChannels * bytesPerSample;
+            const byteRate = sampleRate * blockAlign;
+            const dataSize = pcmData.length * bytesPerSample;
+            const buffer = new ArrayBuffer(44 + dataSize);
+            const view = new DataView(buffer);
+
+            writeString(view, 0, 'RIFF');
+            view.setUint32(4, 36 + dataSize, true);
+            writeString(view, 8, 'WAVE');
+
+            writeString(view, 12, 'fmt ');
+            view.setUint32(16, 16, true);
+            view.setUint16(20, 1, true); 
+            view.setUint16(22, numChannels, true);
+            view.setUint32(24, sampleRate, true);
+            view.setUint32(28, byteRate, true);
+            view.setUint16(32, blockAlign, true);
+            view.setUint16(34, bytesPerSample * 8, true); 
+
+            writeString(view, 36, 'data');
+            view.setUint32(40, dataSize, true);
+
+            const pcmBytes = new Uint8Array(pcmData.buffer);
+            for (let i = 0; i < dataSize; i++) {
+                view.setUint8(44 + i, pcmBytes[i]);
+            }
+
+            return new Blob([view], { type: 'audio/wav' });
+        };
+
+        const writeString = (view, offset, string) => {
+            for (let i = 0; i < string.length; i++) {
+                view.setUint8(offset + i, string.charCodeAt(i));
+            }
+        };
+
+        async function callQueueNumber(queueNum) {
+            // ไม่ต้องทำ TTS ถ้า DB disconnected เพราะจะถูกเรียกตอน updateOrderStatus
+            if (appState.dbStatus === 'disconnected') {
+                 // Fallback: ใช้ browser TTS (ถูกเรียกใน updateOrderStatus ในโหมดจำลองอยู่แล้ว)
+                 return;
+            } 
+            
+            const userQuery = `ประกาศเรียกคิวหมายเลข ${queueNum} สามารถรับเครื่องดื่มของท่านที่บาร์น้ำได้เลยค่ะ`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                generationConfig: {
+                    responseModalities: ["AUDIO"],
+                    speechConfig: {
+                        // FIX: ใช้เสียงผู้หญิง Zephyr (Bright)
+                        voiceConfig: { prebuiltVoiceConfig: { voiceName: "Zephyr" } }
+                    }
+                },
+                model: "gemini-2.5-flash-preview-tts"
+            };
+            
+            const apiKey = "";
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-tts:generateContent?key=${apiKey}`;
+
+            for (let i = 0; i < 3; i++) {
+                try {
+                    const response = await fetch(apiUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+
+                    const result = await response.json();
+                    const part = result?.candidates?.[0]?.content?.parts?.[0];
+                    const audioData = part?.inlineData?.data;
+                    const mimeType = part?.inlineData?.mimeType;
+
+                    if (audioData && mimeType && mimeType.startsWith("audio/L16")) {
+                        const rateMatch = mimeType.match(/rate=(\d+)/);
+                        const sampleRate = rateMatch ? parseInt(rateMatch[1], 10) : 24000; 
+
+                        const pcmData = base64ToArrayBuffer(audioData);
+                        const pcm16 = new Int16Array(pcmData);
+                        const wavBlob = pcmToWav(pcm16, sampleRate);
+                        const audioUrl = URL.createObjectURL(wavBlob);
+                        
+                        const audio = new Audio(audioUrl);
+                        audio.play().catch(e => console.warn("Audio play failed:", e));
+                        
+                        return;
+                    } else {
+                        throw new Error("Invalid TTS response format.");
+                    }
+
+                } catch (error) {
+                    if (i === 2) {
+                        const synth = window.speechSynthesis;
+                        const utterance = new SpeechSynthesisUtterance(userQuery);
+                        utterance.lang = 'th-TH';
+                        synth.speak(utterance);
+                    } else {
+                         await new Promise(resolve => setTimeout(resolve, Math.pow(2, i) * 1000));
+                    }
+                }
+            }
+        }
+        
+        // --- View 4: Customer Order Status (สถานะออเดอร์ (คิว)) ---
+        function renderCustomerView() {
+            // ... (Customer view remains the same)
+            const orders = appState.liveOrders.filter(o => o.status !== 'done').sort((a, b) => a.queueNumber - b.queueNumber);
+            
+            return `
+                <h1 class="text-3xl font-bold primary-text mb-6 text-center">สถานะคำสั่งซื้อของคุณ</h1>
+                ${appState.dbStatus === 'disconnected' ? '<p class="text-sm text-red-500 mb-6 text-center">❗ โหมดจำลอง: ข้อมูลคิวจะไม่ถูกอัพเดตแบบ Real-time และจะไม่บันทึกสถานะ</p>' : ''}
+                <p class="text-gray-600 mb-6 text-center">อัพเดทสถานะคิวเรียลไทม์: โปรดรอการเรียกคิวจากบาร์น้ำ</p>
+                
+                <h2 class="text-2xl font-bold primary-text mb-4">รายการที่รอ (เฉพาะออเดอร์ที่ 'รอรับ' และ 'กำลังทำ')</h2>
+                
+                <div id="customer-orders-list" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    ${orders.length === 0 ? '<p class="col-span-full text-center text-gray-500 text-xl py-10">ไม่มีคิวที่กำลังรอในขณะนี้ สั่งเลย!</p>' : orders.map(renderCustomerOrderCard).join('')}
+                </div>
+            `;
+        }
+        
+        function renderCustomerOrderCard(order) {
+            let statusText, statusColor;
+            switch(order.status) {
+                case 'pending':
+                    statusText = 'รอรับออเดอร์';
+                    statusColor = 'bg-red-500';
+                    break;
+                case 'preparing':
+                    statusText = 'กำลังทำ';
+                    statusColor = 'bg-yellow-500';
+                    break;
+                default:
+                    statusText = 'เสร็จสมบูรณ์';
+                    statusColor = 'bg-green-500';
+            }
+
+            return `
+                <div class="bg-white p-5 rounded-xl shadow-md border-t-8 ${order.status === 'pending' ? 'border-red-500' : 'border-yellow-500'}">
+                    <div class="flex justify-between items-center mb-3">
+                        <span class="text-3xl font-extrabold primary-text">คิว #${order.queueNumber}</span>
+                        <span class="text-sm font-bold text-white px-3 py-1 rounded-full ${statusColor}">${statusText}</span>
+                    </div>
+                    <p class="text-sm text-gray-500 mb-2">รวม: ฿${order.total.toLocaleString('th-TH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
+                    <ul class="text-sm space-y-1 mt-3">
+                        ${order.items.map(item => `
+                            <li>
+                                <span class="font-semibold">${item.name} x${item.qty}</span>
+                                <span class="text-xs text-gray-500 ml-1">(${item.options.size}, ${item.options.sweetness})</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                </div>
+            `;
+        }
+
+        // --- Employee ID Generation ---
+        function generateNextEmployeeId() {
+            // ... (Employee ID generation remains the same)
+            const employees = appState.employees;
+            let maxNum = 0;
+
+            employees.forEach(emp => {
+                const match = emp.employeeId.match(/^A(\d+)$/);
+                if (match) {
+                    const num = parseInt(match[1], 10);
+                    if (num > maxNum) {
+                        maxNum = num;
+                    }
                 }
             });
 
-            startLearningBtn.addEventListener('click', () => {
-                const selectedInterest = document.querySelector('input[name="interest"]:checked').value;
-                reorderUnits(selectedInterest);
+            const nextNum = maxNum + 1;
+            const paddedNum = String(nextNum).padStart(3, '0');
+            
+            return `A${paddedNum}`;
+        }
 
-                welcomeMessage.textContent = `ผู้เรียน: ${user.name}`;
-                interestModal.classList.add('hidden');
-                userControls.classList.remove('hidden');
-                userControls.classList.add('flex');
-                overallDashboard.classList.remove('hidden');
-                saveProgress();
-                renderAll();
-            });
+        // --- View 5: Employee Management (การจัดการพนักงาน) - NEW VIEW ---
+        function renderEmployeeManagement() {
+            // ... (Employee Management remains the same)
+            const employees = appState.employees.sort((a, b) => a.employeeId.localeCompare(b.employeeId));
+            const nextEmployeeId = generateNextEmployeeId();
 
-            submitTestBtn.addEventListener('click', handleSubmitTest);
-            startFinalExamBtn.addEventListener('click', startFinalExam);
-            closeContentBtn.addEventListener('click', () => {
-                contentModal.classList.add('hidden');
-                contentVideo.innerHTML = '';
-                contentText.innerHTML = '';
-            });
-            closeResultBtn.addEventListener('click', () => {
-                resultModal.classList.add('hidden');
-                saveProgress();
-                renderAll();
-            });
-            logoutBtn.addEventListener('click', handleLogout);
+            return `
+                <h1 class="text-3xl font-bold primary-text mb-6">⚙️ การจัดการพนักงาน</h1>
 
-            // --- INITIALIZATION ---
-            loadProgress();
-        });
+                <div class="grid grid-cols-1 lg:col-span-3 gap-6">
+                    <!-- Form for Adding New Employee -->
+                    <div class="lg:col-span-1 bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-bold primary-text mb-4 border-b pb-2">ลงทะเบียนพนักงานใหม่</h2>
+                        <form id="add-employee-form" onsubmit="event.preventDefault(); addEmployee();">
+                            <div class="space-y-4">
+                                <div>
+                                    <label for="employee-name" class="block text-sm font-medium text-gray-700">ชื่อพนักงาน:</label>
+                                    <input type="text" id="employee-name" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-bg focus:border-primary-bg" required>
+                                </div>
+                                <div>
+                                    <label for="employee-id" class="block text-sm font-medium text-gray-700">รหัสพนักงาน (อัตโนมัติ):</label>
+                                    <input type="text" id="employee-id" value="${nextEmployeeId}" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm bg-gray-100 text-gray-500" readonly>
+                                </div>
+                                <div>
+                                    <label for="employee-shift" class="block text-sm font-medium text-gray-700">กะที่ทำงาน:</label>
+                                    <select id="employee-shift" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-bg focus:border-primary-bg" required>
+                                        <option value="">-- เลือกรอบกะ --</option>
+                                        <option value="กะเช้า (08:00-16:00)">กะเช้า (08:00-16:00)</option>
+                                        <option value="กะเย็น (16:00-00:00)">กะเย็น (16:00-00:00)</option>
+                                        <option value="กะกลางคืน (00:00-08:00)">กะกลางคืน (00:00-08:00)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="employee-start-date" class="block text-sm font-medium text-gray-700">วันที่เข้าทำงาน:</label>
+                                    <input type="date" id="employee-start-date" class="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-primary-bg focus:border-primary-bg" value="${new Date().toISOString().slice(0, 10)}" required>
+                                </div>
+                                <button type="submit" class="w-full primary-bg text-white font-bold py-2 rounded-lg hover:bg-opacity-90 transition" ${appState.dbStatus === 'disconnected' ? 'disabled' : ''}>
+                                    บันทึกพนักงาน
+                                </button>
+                                <p id="employee-form-message" class="text-sm text-center mt-2 hidden"></p>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Current Employee List -->
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-md">
+                        <h2 class="text-xl font-bold primary-text mb-4 border-b pb-2">รายการพนักงานปัจจุบัน (${employees.length} คน)</h2>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">รหัส</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ชื่อพนักงาน</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">กะที่ทำงาน</th>
+                                        <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">วันที่เข้าทำงาน</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    ${employees.length === 0 ? `
+                                        <tr><td colspan="4" class="px-4 py-4 text-center text-gray-500">ไม่พบข้อมูลพนักงาน</td></tr>
+                                    ` : employees.map(emp => `
+                                        <tr>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm font-medium primary-text">${emp.employeeId}</td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-900">${emp.name}</td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 font-semibold">${emp.shift || 'N/A'}</td>
+                                            <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">${emp.startDate}</td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                ${appState.dbStatus === 'disconnected' ? '<p class="text-xs text-red-500 text-center mt-6">❗ ไม่สามารถบันทึกข้อมูลพนักงานเมื่อฐานข้อมูลขาดการเชื่อมต่อ</p>' : ''}
+            `;
+        }
+
+        async function addEmployee() {
+            // ... (addEmployee remains the same)
+            const nameEl = document.getElementById('employee-name');
+            const idEl = document.getElementById('employee-id');
+            const shiftEl = document.getElementById('employee-shift'); 
+            const dateEl = document.getElementById('employee-start-date');
+            const msgEl = document.getElementById('employee-form-message');
+
+            const newEmployeeId = idEl.value.trim().toUpperCase();
+
+            const newEmployee = {
+                employeeId: newEmployeeId,
+                name: nameEl.value.trim(),
+                shift: shiftEl.value.trim(), 
+                startDate: dateEl.value.trim()
+            };
+
+            if (!newEmployee.name || !newEmployee.shift || !newEmployee.startDate) {
+                msgEl.textContent = 'กรุณากรอกข้อมูลให้ครบถ้วน';
+                msgEl.classList.remove('hidden', 'text-green-600');
+                msgEl.classList.add('text-red-600');
+                return;
+            }
+            
+            const exists = appState.employees.some(emp => emp.employeeId === newEmployee.employeeId);
+            if (exists) {
+                msgEl.textContent = `รหัสพนักงาน ${newEmployee.employeeId} มีอยู่ในระบบแล้ว (โปรดลองใหม่อีกครั้ง)`;
+                msgEl.classList.remove('hidden', 'text-green-600');
+                msgEl.classList.add('text-red-600');
+                return;
+            }
+            
+            // FIX 3: Check for DB connection
+            if (!db) {
+                msgEl.textContent = 'เกิดข้อผิดพลาด: ไม่สามารถเชื่อมต่อฐานข้อมูลได้ (No Firebase Config)';
+                msgEl.classList.remove('hidden', 'text-green-600');
+                msgEl.classList.add('text-red-600');
+                return;
+            }
+            // END FIX 3
+
+            try {
+                // ใช้ค่าคงที่สำหรับ Collection Path
+                const employeesRef = collection(db, FIREBASE_COLLECTIONS.EMPLOYEES);
+                await setDoc(doc(employeesRef, newEmployee.employeeId), newEmployee);
+
+                msgEl.textContent = 'บันทึกพนักงานสำเร็จ!';
+                msgEl.classList.remove('hidden', 'text-red-600');
+                msgEl.classList.add('text-green-600');
+                
+                nameEl.value = '';
+                shiftEl.value = '';
+                dateEl.value = new Date().toISOString().slice(0, 10);
+                
+                setTimeout(updateUI, 100); 
+
+            } catch (e) {
+                console.error("Error adding employee:", e);
+                msgEl.textContent = 'เกิดข้อผิดพลาดในการบันทึกข้อมูล: ' + e.message;
+                msgEl.classList.remove('hidden', 'text-green-600');
+                msgEl.classList.add('text-red-600');
+            }
+        }
+
+        // --- Real-time Order Listener (for Barista and Customer views) ---
+        function listenToOrders(view) {
+            // ... (listenToOrders remains the same)
+            if (!isAuthReady || !db) return;
+
+            if (appState.unsubscribeOrders) {
+                appState.unsubscribeOrders();
+            }
+
+            // ใช้ค่าคงที่สำหรับ Collection Path
+            const ordersRef = collection(db, FIREBASE_COLLECTIONS.ORDERS);
+            const q = query(ordersRef, orderBy('orderTime', 'desc')); 
+
+            appState.unsubscribeOrders = onSnapshot(q, (snapshot) => {
+                const liveOrders = snapshot.docs.map(doc => ({
+                    id: doc.id,
+                    ...doc.data(),
+                    orderTime: doc.data().orderTime?.seconds ? doc.data().orderTime : { seconds: Date.now() / 1000 } 
+                }));
+                
+                appState.liveOrders = liveOrders; 
+
+                if (appState.view === view) {
+                    updateUI();
+                }
+            }, (error) => {
+                console.error("Error listening to orders:", error);
+            });
+        }
+        
+        // --- Global Function Exposure (Fix for Reference Errors from inline HTML) ---
+        
+        const openEmployeeManagementFromModal = () => {
+             document.getElementById('employee-select-modal').classList.add('hidden');
+             navigate('employeeMgmt');
+        };
+        
+        // --- Added const declaration for showEmployeeSelectModal before exposure ---
+        const showEmployeeSelectModal = () => {
+            document.getElementById('employee-select-modal').classList.remove('hidden');
+            renderEmployeeSelectModalList();
+        };
+
+        function exposeGlobalFunctions() {
+            // Functions are exposed here first
+            window.showEmployeeSelectModal = showEmployeeSelectModal;
+            window.downloadReport = downloadReport;
+            window.selectProduct = selectProduct;
+            window.closeOptionsModal = closeOptionsModal;
+            window.removeItemFromCart = removeItemFromCart;
+            window.clearCart = clearCart;
+            window.processPayment = processPayment;
+            window.showQueueModal = showQueueModal;
+            window.closeQueueModal = closeQueueModal;
+            window.updateOrderStatus = updateOrderStatus;
+            window.calculateChange = calculateChange;
+            window.handleCashPayment = handleCashPayment;
+            window.handleQRConfirmation = handleQRConfirmation;
+            window.closeQRModal = closeQRModal;
+            window.addEmployee = addEmployee;
+            window.openEmployeeManagementFromModal = openEmployeeManagementFromModal;
+        }
+
+
+        // --- Initialization ---
+
+        window.onload = () => {
+            initializeFirebase().then(() => {
+                // Initial updateUI call is moved here to ensure all functions are exposed 
+                // and the DOM is fully loaded before attempting to interact with the UI.
+                updateUI(); 
+            });
+        };
+
     </script>
-
 </body>
 </html>
